@@ -1,0 +1,15 @@
+env: "resco2"
+
+env_args:
+  key: null
+  time_limit: 360
+  pretrained_wrapper: null
+  add_sight_id_len: null
+
+test_greedy: True
+test_nepisode: 20
+test_interval: 50000
+log_interval: 50000
+runner_log_interval: 10000
+learner_log_interval: 10000
+t_max: 10050000

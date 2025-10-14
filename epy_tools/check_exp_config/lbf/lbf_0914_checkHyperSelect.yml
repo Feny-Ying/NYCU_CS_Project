@@ -1,0 +1,108 @@
+parent: epy_tools/check_exp_config/shared/lbf.yml
+
+hp_other_variables:
+  sight_id:
+    noCurSightId:
+      env_args:
+        add_sight_id_len: [ null ]
+    curSightId:
+      env_args:
+        add_sight_id_len: [ 6,  7 ]
+
+hp_map_sight:
+  6s-4p-5f:
+    "ucb(1,2,3,4,5,6)_c1_w5000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=5000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                     preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w20000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                        preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=20000" ] }
+    "ucb(1,2,3,4,5,6)_c1.5_w5000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                        preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1.5,w=5000" ] }
+    "ucb(1,2,3,4,5,6)_c1.5_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                         preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1.5,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1.5_w20000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                            preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1.5,w=20000" ] }
+    "ucb(1,2,3,4,5,6)_c2_w5000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=5000" ] }
+    "ucb(1,2,3,4,5,6)_c2_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                     preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c2_w20000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                        preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=20000" ] }
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'mappo' ]
+        map: [ '6s-4p-5f' ]
+        sight:
+          - ucb(1,2,3,4,5,6)_c1_w5000
+          - ucb(1,2,3,4,5,6)_c1_w10000
+          - ucb(1,2,3,4,5,6)_c1_w20000
+          - ucb(1,2,3,4,5,6)_c1.5_w5000
+          - ucb(1,2,3,4,5,6)_c1.5_w10000
+          - ucb(1,2,3,4,5,6)_c1.5_w20000
+          - ucb(1,2,3,4,5,6)_c2_w5000
+          - ucb(1,2,3,4,5,6)_c2_w10000
+          - ucb(1,2,3,4,5,6)_c2_w20000
+        sight_id:
+          - noCurSightId
+          - curSightId
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-1p-5f', '6s-3p-5f', '6s-4p-5f', '6s-4p-5f-coop' ]
+          sight: [ 15s ]
+          sight_id: [ noCurSightId, curSightId ]
+      plot_config:
+        title: 'template'
+        save_path: 'lbf/0914_hyperSelect/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+#        y_low: -0.02
+        y_low: 0.6 # cut
+        y_high: 0.92
+        ylabel: 'Test Return'
+        base_width: 18
+        base_height: 15
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s ]
+        #
+        label_without_overall_performance: False
+        label_without_len_and_runs: False
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ 'noCurSightId', 'curSightId' ]
+        list_of_assigned_styles_and_keywords:
+          # Var "c":
+          - { keywords: [ 'c1_' ], color: red }
+          - { keywords: [ 'c1.5' ], color: green }
+          - { keywords: [ 'c2' ], color: blue }
+          # Var "w":
+          - { keywords: [ 'w5000' ], marker: 'o' }
+          - { keywords: [ 'w10000' ], marker: 's' }
+          - { keywords: [ 'w20000' ], marker: '^' }
+          # Var: "sight_id":
+          - { keywords: [ 'noCurSightId' ], linestyle: '--' }
+          - { keywords: [ 'curSightId' ], linestyle: '-'  }
+
+  plots:
+    # ``python epy_tools/check_and_plot.py -f projects/LBF/sacred_others/20240913_比較並畫0913之前之後的UCB差異 -c epy_tools/check_exp_config/lbf/lbf_0913_afterUCBTestingFix.yml``
+    #　===================== Return =====================
+    # All pure sights and UCB - 6s
+    - template_name: 'LBF_template - base'
+      plot_config: { title: 'LBF - All UCB (6s)' }
+    # Fix sight_id
+    - template_name: 'LBF_template - base'
+      plot_config:
+        title: 'LBF - All UCB (6s) - Fix sight_id'
+        custom_ax_col_var: sight_id

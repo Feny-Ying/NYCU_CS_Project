@@ -1,0 +1,233 @@
+domain: SMAC
+
+map_to_sight_to_sight_and_env_id:
+  2c_vs_64zg:
+    3s: { env_id: 2c_vs_64zg, preprocess_desc: "asc2:3s->ucb(3s),c=1,w=5000" }
+    5s: { env_id: 2c_vs_64zg, preprocess_desc: "asc2:5s->ucb(5s),c=1,w=5000" }
+    7s: { env_id: 2c_vs_64zg, preprocess_desc: "asc2:7s->ucb(7s),c=1,w=5000" }
+    9s: { env_id: 2c_vs_64zg, preprocess_desc: "asc2:9s->ucb(9s),c=1,w=5000" }
+    "ucb(3,5,7,9)_c1_w5000": { env_id: 2c_vs_64zg, preprocess_desc: "asc2:9s->ucb(3s,5s,7s,9s),c=1,w=5000" }
+
+  8m_vs_9m:
+    3s: { env_id: 8m_vs_9m, preprocess_desc: "asc2:3s->ucb(3s),c=1,w=5000" }
+    5s: { env_id: 8m_vs_9m, preprocess_desc: "asc2:5s->ucb(5s),c=1,w=5000" }
+    7s: { env_id: 8m_vs_9m, preprocess_desc: "asc2:7s->ucb(7s),c=1,w=5000" }
+    9s: { env_id: 8m_vs_9m, preprocess_desc: "asc2:9s->ucb(9s),c=1,w=5000" }
+    "ucb(3,5,7,9)_c1_w5000": { env_id: 8m_vs_9m, preprocess_desc: "asc2:9s->ucb(3s,5s,7s,9s),c=1,w=5000" }
+  MMM:
+    3s: { env_id: MMM, preprocess_desc: "asc2:3s->ucb(3s),c=1,w=5000" }
+    5s: { env_id: MMM, preprocess_desc: "asc2:5s->ucb(5s),c=1,w=5000" }
+    7s: { env_id: MMM, preprocess_desc: "asc2:7s->ucb(7s),c=1,w=5000" }
+    9s: { env_id: MMM, preprocess_desc: "asc2:9s->ucb(9s),c=1,w=5000" }
+    "ucb(3,5,7,9)_c1_w5000": { env_id: MMM,
+                               preprocess_desc: "asc2:9s->ucb(3s,5s,7s,9s),c=1,w=5000" }
+
+seeds: [ 0, 1, 2, 3, 4 ]
+
+# --- 給定超參數的範圍 ---
+all_shared_hyperparameters: # 所有 alg 超參的 base (all_shared -> group -> alg custom)
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args: # 3 map x 2 addInfo x 2 (w/ w/o concatenate_obs_as_state)
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': 'MMM', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '2c_vs_64zg', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '8m_vs_9m', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': 'MMM', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '2c_vs_64zg', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'concatenate_obs_as_state': False, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '8m_vs_9m', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': 'MMM', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '2c_vs_64zg', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '8m_vs_9m', 'move_amount': 2, 'no_cur_sight_info': False, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': 'MMM', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '2c_vs_64zg', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+    - { 'add_sight_id_len': null, 'continuing_episode': False, 'debug': False, 'difficulty': '7', 'game_version': null, 'heuristic_ai': False, 'heuristic_rest': False, 'map_name': '8m_vs_9m', 'move_amount': 2, 'no_cur_sight_info': True, 'obs_all_health': True, 'obs_instead_of_state': False, 'obs_last_action': False, 'obs_own_health': True, 'obs_pathing_grid': False, 'obs_terrain_height': False, 'obs_timestep_number': False, 'replay_dir': '', 'replay_prefix': '', 'reward_death_value': 10, 'reward_defeat': 0, 'reward_negative_scale': 0.5, 'reward_only_positive': True, 'reward_scale': True, 'reward_scale_rate': 20, 'reward_sparse': False, 'reward_win': 200, 'seed': null, 'shoot_range': null, 'state_last_action': False, 'state_timestep_number': False, 'step_mul': 8 }
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'asc2' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc:
+    - null
+    - "asc2:3s->ucb(3s),c=1,w=5000"
+    - "asc2:5s->ucb(5s),c=1,w=5000"
+    - "asc2:7s->ucb(7s),c=1,w=5000"
+    - "asc2:9s->ucb(9s),c=1,w=5000"
+    - "asc2:9s->ucb(3s,5s,7s,9s),c=1,w=5000"
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_check_interval: [ 20000 ]
+  dormant_n_batches: [ 32 ]
+  policy_diff_interval_1: [ 2000 ]
+  policy_diff_interval_2: [ 20000 ]
+  policy_diff_interval_3: [ 200000 ]
+
+
+all_skipped_hyperparameters: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+
+
+#all_do_not_have_hyperparameters: # 不能列在config.json的超參，若有也得設成 None # TODO: 需要時實作
+
+hyperparameter_groups:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 50000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0005 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 50000 ]
+
+
+
+
+
+# 由於會檢查是否所有有註記在此的超參都有在config.json，若是有些超參是不需要的，或是後來新增但不影響的，
+# 可以加到個別演算法的： `not_having_ok_hyperparameters`，不然會報錯
+possible_algorithms:
+  iql:
+    min_n_tests: 81 # 4M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+#  qmix:
+#    min_n_tests: 81  # 4M
+#    hyperparameter_group: value-based
+#    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+#    not_having_ok_hyperparameters:
+#      - force_render
+#      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+#      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+
+
+
+maps:
+  2c_vs_64zg:
+    algorithms: [ iql ]
+    sights:
+      - 3s
+      - 5s
+      - 7s
+      - 9s
+      - "ucb(3,5,7,9)_c1_w5000"
+  8m_vs_9m:
+    algorithms: [ iql ]
+    sights:
+      - 3s
+      - 5s
+      - 7s
+      - 9s
+      - "ucb(3,5,7,9)_c1_w5000"
+  MMM:
+    algorithms: [ iql ]
+    sights:
+      - 3s
+      - 5s
+      - 7s
+      - 9s
+      - "ucb(3,5,7,9)_c1_w5000"
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  candidates:
+    - title: 'SMAC w20000 Original 9s Template'
+      save_path: 'template_SMAC_w20000_Original9s_WinRate.png'
+      tag: battle_won_mean
+      maps:
+        - 2c_vs_64zg
+        - 8m_vs_9m
+        - MMM
+      algorithms: [ 'iql' ]
+      sights: [ 9s, 'ucb(3,5,7,9)_c1_w20000', 'ucb(3,6,9)_c1_w20000' ]
+      band: 'std' # 'ci' or 'stderr' or 'minmax'
+      plot_skip: 1
+      y_low: -0.02
+      y_high: 1.02
+      base_width: 8
+      base_height: 6
+      no_show: True
+      # 標色
+      list_of_assigned_styles_and_keywords:
+        - { keywords: [ 'ucb' ], color: 'red' }
+      # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+      pure_sights: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+      #
+      label_without_overall_performance: False
+      hide_title_description: True
+      show_title: False
+      show_legend: True
+      show_text_on_line: True
+
+
+  run: [ ]
+  #  run:
+  #    - 'rware_original5s_testReturnMean.png'
+  #    - 'rware_original3s_testReturnMean.png'
+
+  function_run:
+    # Win Rate
+    - template_save_path: 'template_SMAC_w20000_Original9s_WinRate.png'
+      title: 'SMAC - Original 9s'
+      save_path: 'try/0822_IQL_3-5-7-9_w5000/win_rate/SMAC_w20000_Original9s_WinRate.png'
+      sights: [ 3s, 5s, 7s, 9s, 'ucb(3,5,7,9)_c1_w5000' ]
+      pure_sights: [ 3s, 5s, 7s, 9s ]
+
+

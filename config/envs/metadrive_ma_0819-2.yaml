@@ -1,0 +1,57 @@
+env: "metadrive"
+
+env_args:
+  # Original in Gymma
+  key: null
+  time_limit: 1000
+  pretrained_wrapper: null
+  add_sight_id_len: null
+  # ------------- Custom in Metadrive -------------
+  respawn: True  # Whether to respawn the vehicle after collision
+  # Lidar settings
+  lidar_num_lasers: 72  # Number of lasers in lidar (>0)
+  use_lidar_num_others: False  # Number of other vehicles to detect (default: = num_agents - 1)
+  # Side detector
+  side_detector_num_lasers: 8  # Number of lasers in side detector
+  # Lane line detector
+  lane_line_detector_num_lasers: 0  # Number of lasers in lane line detector
+  # GUI render settings
+  use_render: False  # Whether to use GUI rendering
+  show_lidar: True  # Whether to show lidar
+  show_navi_mark: True  # Whether to show navigation mark
+  show_dest_mark: True  # Whether to show destination mark
+  show_line_to_dest: True  # Whether to show line to destination
+  show_line_to_navi_mark: True  # Whether to show line to navigation mark
+  show_side_detector: True  # Whether to show side detector
+  show_lane_line_detector: True  # Whether to show lane line detector
+  # Reward and Penalty
+  crash_vehicle_penalty: 5  # Penalty for crashing into other vehicles
+  crash_object_penalty: 5  # Penalty for crashing into objects
+  out_of_road_penalty: 5  # Penalty for going out of road
+  success_reward: 10
+  driving_reward: 1
+  speed_reward: 0.1
+  use_lateral_reward: False
+  black_death_reward: 0.0
+  # Termination
+  horizon: 1000  # Maximum number of steps
+  # Action
+  discrete_steering_dim: 5  # Number of discrete steering actions
+  discrete_throttle_dim: 5  # Number of discrete throttle actions
+  decision_repeat: 10  # Number of steps to repeat the decision
+
+test_greedy: True
+test_nepisode: 10
+save_model_interval: 100000
+test_interval: 100000
+log_interval: 50000
+runner_log_interval: 10000
+learner_log_interval: 10000
+t_max: 205000000000000
+
+dormant_check_interval: 0
+policy_diff_interval_1: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_2: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_3: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+
+use_rnn: False

@@ -1,0 +1,74 @@
+parent: epy_tools/check_exp_config/shared/rware.yml
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars:
+        alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+        map: [ tiny-2ag-easy-5s, tiny-2ag-easy-3s, tiny-2ag-5s, tiny-2ag-3s, small-2ag-5s, small-2ag-3s ]
+        sight: [ 'ucb(1,2,3)_c1_w10000', 'ucb(1,2,3)_0916AfterHyperSelect', "ucb(1,2,3,4,5)_c1_w10000", "ucb(1,2,3,4,5)_0916AfterHyperSelect", 1s, 2s, 3s, 4s, 5s ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+          map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ]
+          sight: [ 'ucb(1,2,3)_c1_w10000', 'ucb(1,2,3)_0916AfterHyperSelect' ]
+        - alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+          map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+          sight: [ 'ucb(1,2,3,4,5)_c1_w10000', 'ucb(1,2,3,4,5)_0916AfterHyperSelect', 4s, 5s ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'rware/0922_see0916_afterHyperSelect/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 30.02
+        ylabel: 'Test Return'
+        base_width: 8
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ tiny-1ag-5s, tiny-1ag-3s, tiny-2ag-easy-5s, tiny-2ag-easy-3s, tiny-2ag-5s, tiny-2ag-3s, small-2ag-5s, small-2ag-3s ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+          - { keywords: [ '0916AfterHyperSelect' ], color: green }
+
+
+  plots:
+#    #　===================== Return =====================
+#    - template_name: 'RWARE_plot_template - base'
+#      plot_config: { title: 'RWARE - All Pure vs UCB' }
+#    - template_name: 'RWARE_plot_template - base'
+#      plot_config: { title: 'RWARE - Original vs UCB' }
+#      skip_var_combinations:
+#        - alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+#          map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ]
+#          sight: [ 'ucb(1,2,3)_c1_w10000', 'ucb(1,2,3)_0916AfterHyperSelect', 1s, 2s, 3s, 4s ]
+#        - alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+#          map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ 'ucb(1,2,3,4,5)_c1_w10000', 'ucb(1,2,3,4,5)_0916AfterHyperSelect', 4s, 5s, 1s, 2s ]
+#      list_of_assigned_styles_and_keywords:
+#        - { keywords: [ 's' ], color: black }
+#        - { keywords: [ 'ucb' ], color: red, linestyle: '--' }
+#        - { keywords: [ '0916AfterHyperSelect' ], color: green, linestyle: '--'  }
+#      y_low: null
+#      y_high: null
+    # Sight
+    - template_name: 'RWARE_plot_template - base'
+      skip_var_combinations:
+        - alg: [ 'iql', 'qmix', 'ippo', 'mappo' ]
+          map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s]
+          sight: [ 1s, 2s, 3s, 4s, 5s ]
+      plot_config: { title: 'RWARE - Selected Sights', tag: 'test_selected_sight_mean', y_low: -0.98, y_high: 5.02 }

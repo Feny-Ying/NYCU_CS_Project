@@ -1,0 +1,128 @@
+#domain: SMAC Dynamic Team Composition
+#parent: null
+#metrics_json_name: 'info.json' # 沒給的話，會用預設的名稱: `metric.json`
+## 註：若不想固定seed，只要求runs的數量，在config請設定`seeds` 為 integer。
+##     若要要求固定seed，請設定`seeds` 為 list of integers。
+#seeds: 5
+#
+#
+#
+##hp_all_skip
+##hp_all
+##hp_alg_group
+##hp_alg
+##hp_map
+##hp_sight
+##hp_map_sight
+##hp_other_variables
+#
+#hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+#  - t_max
+#  - save_path
+#  - buffer_cpu_only
+#  - seed # 這裡不用設，因為每次 run 的 seed 都不同
+#  - local_results_path
+#  - name
+#  - reset_pos
+#  - save_model
+#  - save_model_interval
+#  - save_replay
+#  - use_cuda
+#  - use_tensorboard
+#  - render
+#
+#hp_all:
+#  env: [ 'sc2custom' ]
+#  "ucb_add": 0
+#  "ucb_c": 2
+#  "ucb_w": 5000,
+#  "ucb_div": 20
+#
+#
+#
+#hp_alg_group:
+#  qmix_atten: { }
+#  icm_qmix_atten: { }
+#
+#hp_alg:
+#  qmix_atten:
+#    min_n_tests: 195  # 10M (since 每場訓練episode步數不同，可能影響總test次數)
+#    hyperparameter_group: qmix_atten
+#    custom_hyperparameters: { }
+#  icm_qmix_atten:
+#    min_n_tests: 195  # 10M (since 每場訓練episode步數不同，可能影響總test次數)
+#    hyperparameter_group: icm_qmix_atten
+#    custom_hyperparameters: { }
+#  icm_qmix_atten_nomi:
+#    min_n_tests: 195  # 10M (since 每場訓練episode步數不同，可能影響總test次數)
+#    hyperparameter_group: icm_qmix_atten
+#    custom_hyperparameters: { }
+#
+#hp_map:
+#  3-8sz_symmetric:
+#    scenario: [ 3-8sz_symmetric ]
+#
+#hp_sight:
+#  original: { }
+#  6s: { "ucb_sight_list": [ [ 6 ] ]}
+#  3s:  { "ucb_sight_list": [ [ 3 ] ]}
+#  "dsr(3s,6s,9s)":  { "ucb_sight_list": [ [ 3, 6, 9 ] ]}
+#  "rankPercent0.4": { "ucb_sight_list": [ null ]}
+#  "rankPercent0.8": { "ucb_sight_list": [ null ]}
+#  "ucbRankPercent(0.4,0.8,1.0)": { "ucb_sight_list": [ [ 4, 8, 10 ] ], set_rank_percent_instead_of_sight: True }
+#
+#
+#hp_map_sight: { }
+#
+#hp_other_variables: { }
+#
+#
+#
+#
+#
+## --------------- Plotting Settings ---------------
+## 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+#plot:
+#  templates:
+#    - template_name: 'SMAC_plot_template - base'
+#      exp_vars:
+#        alg: [ 'icm_qmix_atten', 'qmix_atten', 'icm_qmix_atten_nomi' ]
+#        map: [ '3-8sz_symmetric' ]
+#        sight: [ original, 3s, 6s, "dsr(3s,6s,9s)", "rankPercent0.4", "rankPercent0.8", "ucbRankPercent(0.4,0.8,1.0)" ]
+#      skip_var_combinations:
+#        - alg: [ 'icm_qmix_atten' ]
+#          map: [ '3-8sz_symmetric' ]
+#          sight: [ 3s, 6s, "dsr(3s,6s,9s)", "rankPercent0.4", "rankPercent0.8", "ucbRankPercent(0.4,0.8,1.0)" ]
+#      plot_config:
+#        title: 'SMAC - Whether to add current sight info?'
+#        save_path: 'cama/1005_QMIX/vs.png'
+#        tag: battle_won_mean
+#        band: 'std' # 'ci' or 'stderr' or 'minmax'
+#        plot_skip: 1
+#        y_low: -0.02
+#        y_high: 1.02
+#        ylabel: 'Win Rate'
+#        base_width: 8
+#        base_height: 6
+#        no_show: True
+#        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+#        pure_sights: [ 6s, 9s, 12s, 15s, 18s, 21s ]
+#        #
+#        label_without_overall_performance: True
+#        label_without_len_and_runs: False
+#        hide_subtitle_description: False
+#        show_title: False
+#        show_legend: True
+#        show_text_on_line: False
+#        custom_ax_row_var: state
+#        custom_ax_col_var: map
+#        row_var_order: [ originalState, concatenatedObsAsState ]
+#        col_var_order: [ 25m, so_many_baneling ]
+#        list_of_assigned_styles_and_keywords: [ ]
+#  #          - { keywords: [ 'ucb' ], color: red }
+#  #          - { keywords: [ 'ucb', 'div20' ], color: 'mediumseagreen' }
+#  #          - { keywords: [ 'ucb', 'noCurSightInfo' ], linestyle: 'dotted' }
+#
+#  plots:
+#    - template_name: 'SMAC_plot_template - base'
+#      plot_config: { save_path: 'cama/1005_QMIX/vs.png' }

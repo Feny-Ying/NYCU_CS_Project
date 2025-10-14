@@ -1,0 +1,177 @@
+parent: epy_tools/check_exp_config/shared/rware.yml
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        map: [ tiny-1ag-5s, tiny-1ag-3s, tiny-2ag-easy-5s, tiny-2ag-easy-3s, tiny-2ag-5s, tiny-2ag-3s, small-2ag-5s, small-2ag-3s ]
+        sight: [ 'ucb(1,2,3)_c1_w10000', "ucb(1,2,3,4,5)_c1_w10000" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ]
+          sight: [ 'ucb(1,2,3)_c1_w10000' ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+          sight: [ 'ucb(1,2,3,4,5)_c1_w10000', 4s, 5s ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'rware/0905/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 30.02
+        ylabel: 'Test Return'
+        base_width: 8
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ tiny-1ag-5s, tiny-1ag-3s, tiny-2ag-easy-5s, tiny-2ag-easy-3s, tiny-2ag-5s, tiny-2ag-3s, small-2ag-5s, small-2ag-3s ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+
+
+  plots:
+    #　===================== Return =====================
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 1s, 2s, 3s, 4s, 5s, "ucb(1,2,3,4,5)_c1_w10000" ], map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ] }
+      plot_config: { title: 'RWARE - Original 5s (all pure sights) (aligned y)' }
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 5s, "ucb(1,2,3,4,5)_c1_w10000" ], map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ] }
+      plot_config: { title: 'RWARE - Original 5s (aligned y)' }
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 1s, 2s, 3s, "ucb(1,2,3)_c1_w10000" ], map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ] }
+      plot_config: { title: 'RWARE - Original 3s (all pure sights) (aligned y)' }
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 3s, "ucb(1,2,3)_c1_w10000" ], map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ] }
+      plot_config: { title: 'RWARE - Original 3s (aligned y)' }
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 5s, "ucb(1,2,3,4,5)_c1_w10000" ], map: [ tiny-1ag-5s,  tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s ] }
+      plot_config: { title: 'RWARE - Original 5s', y_high: null }
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars: { sight: [ 3s, "ucb(1,2,3)_c1_w10000" ], map: [ tiny-1ag-3s,  tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ] }
+      plot_config: { title: 'RWARE - Original 3s' , y_high: null}
+
+    # ===================== UCB: div or not? =====================
+#    - template_name: 'RWARE_plot_template - base'
+#      exp_vars:
+#        alg: [ ippo, mappo]
+#        sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30" ]
+#      skip_var_combinations:
+#        # 拿掉 value based
+#        - alg: [ iql, vdn, qmix ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30"]
+#        # 拿掉 div30 ucb 對到不同 env id 的
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s]
+#          sight: [ "ucb(1,2,3)_c1_w10000_div30" ]
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s]
+#          sight: [ "ucb(1,2,3,4,5)_c1_w10000_div30" ]
+#      plot_config:
+#        title: 'RWARE - Normalize returns when selecting arms?'
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb' ], color: red }
+#          - { keywords: [ 'div30' ], color: yellow }
+
+#    - template_name: 'RWARE_plot_template - base'
+#      exp_vars:
+#        alg: [ ippo, mappo]
+#        sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30", 3s, 5s ]
+#      skip_var_combinations:
+#        # 拿掉 value based
+#        - alg: [ iql, vdn, qmix ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30"]
+#        # 拿掉 div30 ucb 對到不同 env id 的
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s]
+#          sight: [ "ucb(1,2,3)_c1_w10000_div30" ]
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s]
+#          sight: [ "ucb(1,2,3,4,5)_c1_w10000_div30" ]
+#        #
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s]
+#          sight: [ 3s  ]
+#        - alg: [ ippo, mappo ]
+#          map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s]
+#          sight: [ 5s  ]
+#      plot_config:
+#        title: 'RWARE - Normalize returns when selecting arms? (with pure sights)'
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb' ], color: red }
+#          - { keywords: [ 'div30' ], color: yellow }
+
+#    - template_name: 'RWARE_plot_template - base'
+#      exp_vars:
+#        alg: [ ippo, mappo]
+#        sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30" ]
+#        map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#      skip_var_combinations:
+#        # 拿掉 value based
+#        - alg: [ iql, vdn, qmix ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30"]
+#      plot_config:
+#        tag: 'adaptive_worker/1s_times'
+#        title: 'RWARE - Normalize returns when selecting arms? (1s dynamic)'
+#        y_high: 1.02
+#        ylabel: 'Ratio in the sliding window'
+#        x_low: 1000
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb' ], color: red }
+#          - { keywords: [ 'div30' ], color: yellow }
+#    - template_name: 'RWARE_plot_template - base'
+#      exp_vars:
+#        alg: [ ippo, mappo]
+#        sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30" ]
+#        map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#      skip_var_combinations:
+#        # 拿掉 value based
+#        - alg: [ iql, vdn, qmix ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30"]
+#      plot_config:
+#        tag: 'adaptive_worker/2s_times'
+#        title: 'RWARE - Normalize returns when selecting arms? (2s dynamic)'
+#        y_high: 1.02
+#        ylabel: 'Ratio in the sliding window'
+#        x_low: 1000
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb' ], color: red }
+#          - { keywords: [ 'div30' ], color: yellow }
+#    - template_name: 'RWARE_plot_template - base'
+#      exp_vars:
+#        alg: [ ippo, mappo]
+#        sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30" ]
+#        map: [ tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#      skip_var_combinations:
+#        # 拿掉 value based
+#        - alg: [ iql, vdn, qmix ]
+#          map: [ tiny-1ag-5s, tiny-2ag-easy-5s, tiny-2ag-5s, small-2ag-5s, tiny-1ag-3s, tiny-2ag-easy-3s, tiny-2ag-3s, small-2ag-3s ]
+#          sight: [ "ucb(1,2,3)_c1_w10000", "ucb(1,2,3)_c1_w10000_div30","ucb(1,2,3,4,5)_c1_w10000","ucb(1,2,3,4,5)_c1_w10000_div30"]
+#      plot_config:
+#        tag: 'adaptive_worker/3s_times'
+#        title: 'RWARE - Normalize returns when selecting arms? (3s dynamic)'
+#        y_high: 1.02
+#        ylabel: 'Ratio in the sliding window'
+#        x_low: 1000
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb' ], color: red }
+#          - { keywords: [ 'div30' ], color: yellow }

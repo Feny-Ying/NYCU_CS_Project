@@ -1,0 +1,390 @@
+domain: LBF
+
+map_id_abbreviation:
+  1p-5f: lbforaging:Foraging-15s-15x15-1p-5f-v1
+  3p-5f: lbforaging:Foraging-15s-15x15-3p-5f-v1
+  4p-5f: lbforaging:Foraging-15s-15x15-4p-5f-v1
+  4p-5f-coop: lbforaging:Foraging-15s-15x15-4p-5f-coop-v1
+  6s-4p-5f-coop: lbforaging:Foraging-6s-15x15-4p-5f-coop-v1
+
+seeds: [ 0, 1, 2, 3, 4 ]
+#seeds: [ 0, 1, 2 ]
+
+# --- 給定超參數的範圍 ---
+# 假設：整個 domain 一個演算法只會有一組超參數
+# `hyperparameter_groups` 是預先給定一些通用的超參數組，group 是超參數組的名稱，例如 value-based、policy-based
+# 每個演算法要註明用到哪個參數組(寫在`hyperparameter_group`)，然後各演算法還可以有自己的超參數(`custom_hyperparameters`)
+# 若 `custom_hyperparameters` 有和 `hyperparameter_groups` 重複的參數，以 `custom_hyperparameters` 為主(overwrite)
+# Dict of keys (group_name) and values (parameter dict: key)
+#              parameter_dict: key (parameter_name) and value (list of allowed values，
+#                                                                 需要list是因為e.g.,有時 0和null都可以)
+# 補充
+# - 層級是："all ..." -> "... group" -> "alg custom" 後面 overrite 前面
+
+all_shared_hyperparameters: # 所有 alg 超參的 base (all_shared -> group -> alg custom)
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    - { 'key': 'lbforaging:Foraging-15s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-14s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-13s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-12s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-11s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-10s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-9s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-8s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-7s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-6s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-5s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-4s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-3s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-2s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-1s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-15s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-14s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-13s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-12s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-11s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-10s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-9s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-8s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-7s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-6s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-5s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-4s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-3s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-2s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-1s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-15s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-14s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-13s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-12s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-11s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-10s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-9s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-8s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-7s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-6s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-5s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-4s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-3s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-2s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-1s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-15s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-14s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-13s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-12s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-11s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-10s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-9s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-8s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-7s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-6s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-5s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-4s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-3s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-2s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'key': 'lbforaging:Foraging-1s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - { 'add_sight_id_len': null, 'key': 'lbforaging:Foraging-15s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-14s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-13s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-12s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-11s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-10s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-9s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-8s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-7s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-6s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-5s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-4s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-3s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-2s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-1s-15x15-3p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-15s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-14s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-13s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-12s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-11s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-10s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-9s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-8s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-7s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-6s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-5s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-4s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-3s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-2s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-1s-15x15-4p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-15s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-14s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-13s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-12s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-11s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-10s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-9s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-8s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-7s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-6s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-5s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-4s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-3s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-2s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-1s-15x15-4p-5f-coop-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-15s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-14s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-13s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-12s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-11s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-10s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-9s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-8s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-7s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-6s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-5s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-4s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-3s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-2s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+    - {  'add_sight_id_len': null, 'key': 'lbforaging:Foraging-1s-15x15-1p-5f-v1', 'pretrained_wrapper': null, 'time_limit': 50 }
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc:
+    - 'lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000'
+    - 'lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000'
+    - 'lbf:15s->equal(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000'
+    - null
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_interval: [ 50000 ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  policy_diff_n_batches: [ 32 ]
+
+all_skipped_hyperparameters: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+
+
+#all_do_not_have_hyperparameters: # 不能列在config.json的超參，若有也得設成 None # TODO: 需要時實作
+
+hyperparameter_groups:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 200000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0003 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    dormant_check_interval: [ 20000 ]
+    dormant_n_batches: [ 32 ]
+    policy_diff_interval_1: [ 2000 ]
+    policy_diff_interval_2: [ 20000 ]
+    policy_diff_interval_3: [ 200000 ]
+  ppo:
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    dormant_check_interval: [ 0 ]
+    dormant_n_batches: [ 32 ]
+    policy_diff_interval_1: [ 0 ]
+    policy_diff_interval_2: [ 0 ]
+    policy_diff_interval_3: [ 0 ]
+
+
+
+
+
+# 由於會檢查是否所有有註記在此的超參都有在config.json，若是有些超參是不需要的，或是後來新增但不影響的，
+# 可以加到個別演算法的： `not_having_ok_hyperparameters`，不然會報錯
+possible_algorithms:
+  iql:
+    min_n_tests: 201
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  vdn:
+    min_n_tests: 201
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ vdn ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  qmix:
+    min_n_tests: 201
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  ippo:
+    min_n_tests: 401
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "ac_critic" ], target_update_interval_or_tau: [ 200 ] }
+    not_having_ok_hyperparameters: { }
+  mappo:
+    min_n_tests: 401
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters: { }
+test_interval: 50000
+
+
+maps:
+  1p-5f:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15),c=1,w=10000', 'ucb(1,2,3,4,5,6),c=1,w=10000' ]
+
+  3p-5f:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15),c=1,w=10000', 'ucb(1,2,3,4,5,6),c=1,w=10000' ]
+
+  4p-5f:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15),c=1,w=10000', 'ucb(1,2,3,4,5,6),c=1,w=10000' ]
+
+  4p-5f-coop:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15),c=1,w=10000', 'ucb(1,2,3,4,5,6),c=1,w=10000' ]
+
+#  6s-4p-5f-coop:
+#    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+#    sights: [ 'ucb(1,2,3,4,5,6)' ]
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+
+# Plot's value 是一個 list of dict，每個 dict 代表一個要畫的圖的 PlotConfig 的值設定
+# 若沒有給的項，就用 PlotConfig 的 default 值
+plot:
+  # [Value-based] Pure 1~6+15 vs UCB
+  - title: 'LBF (Level-Based Foraging)'
+    envs:
+      - lbforaging-Foraging-15s-15x15-1p-5f-v1
+      - lbforaging-Foraging-15s-15x15-3p-5f-v1
+      - lbforaging-Foraging-15s-15x15-4p-5f-v1
+      - lbforaging-Foraging-15s-15x15-4p-5f-coop-v1
+    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+    #    algorithms: [ 'iql', 'vdn', 'qmix' ]
+    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15),c=1,w=10000', 'ucb(1,2,3,4,5,6),c=1,w=10000' ]
+    #    band: 'ci' # 'ci' or 'stderr' or 'minmax' or 'std'
+    #    band: 'stderr' # 'ci' or 'stderr' or 'minmax'
+    band: 'std' # 'ci' or 'stderr' or 'minmax'
+    plot_skip: 1
+    y_low: 0.
+    y_high: 1.
+    base_width: 10
+    base_height: 6
+    no_show: True
+    erase_env_strings: [ "lbforaging:Foraging-" ]
+    save_path: 'lbf_test_return_mean_valueBased.png'
+    # 標色
+    list_of_assigned_color_and_keywords:
+      - { keywords: [ 'ucb(1,2,3,4,5,6,15)' ], color: 'red' }
+      - { keywords: [ 'ucb(1,2,3,4,5,6)' ], color: 'orange' }
+    pure_sights: [ 1s, 2s, 3s, 4s, 5s , 6s, 15s ]
+
+  #  # [Policy-based] Pure 1~6+15 vs UCB
+  #  - envs:
+  #      - lbforaging-Foraging-15s-15x15-1p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-3p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-coop-v1
+  #    #    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+  #    algorithms: [ 'ippo', 'mappo' ]
+  #    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15)' ]
+  #    ci: 'ci'
+  #    plot_skip: 1
+  #    y_low: 0.
+  #    no_show: True
+  #    erase_env_strings: [ "lbforaging-Foraging-" ]
+  #    save_path: 'lbf_test_return_mean_policyBased.png'
+  #    # 標色
+  #    list_of_assigned_color_and_keywords:
+  #      - { keywords: [ 'ucb(1,2,3,4,5,6,15)' ], color: 'red' }
+
+
+  # Original vs UCB
+
+
+
+
+#make_cmd:
+#  yaml: "lbf/ippo/base"
+#  time_limit: 50
+#  preprocess_desc_dict: # If not in this dict, set None
+#    "ucb(1,2,3,4,5,6,15),c=1,w=10000": "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000"
+#    "ucb(1,2,3,4,5,6),c=1,w=10000": "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000"
+#  custom_hyperparameters: {}

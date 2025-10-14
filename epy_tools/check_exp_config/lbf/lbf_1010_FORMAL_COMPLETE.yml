@@ -1,0 +1,949 @@
+#  python epy_tools/check_and_plot.py -f projects/LBF/sacred_FORMAL_COMPLETE/ -c epy_tools/check_exp_config/lbf/lbf_1010_FORMAL_COMPLETE.yml -no-check
+
+domain: LBF
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+  # 對於以下 FAS 設定的 TODO: 未來多一個欄位，檢查若有此變數，要什麼值才可以；若不存在，則skip
+  - use_fas
+  - fas_lambda
+  - fas_dynamic
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    add_sight_id_len: [ null ]
+    key: [ ]
+    pretrained_wrapper: [ null ]
+    time_limit: [ 50 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ null ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_n_batches: [ 32 ]
+  dormant_check_interval: [ 0 ]
+  policy_diff_interval_1: [ 0 ]
+  policy_diff_interval_2: [ 0 ]
+  policy_diff_interval_3: [ 0 ]
+
+hp_alg_group:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 200000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0003 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 50000 ]
+  ppo:
+    hidden_dim: [ 64 ]
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    test_interval: [ 50000 ]
+
+
+hp_alg:
+  iql:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  vdn:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ vdn ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  qmix:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  ippo:
+    min_n_tests: 101
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "ac_critic" ], target_update_interval_or_tau: [ 200 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  mappo:
+    min_n_tests: 101
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+
+hp_map_sight:
+  10s-10x10-4p-2f:
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    8s: { env_args: { key: [ lbforaging:Foraging-8s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    10s: { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6,8,10)_0919": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-2f-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+  6s-10x10-4p-2f:
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6)_0919": { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-v1 ] } , preprocess_desc: [ "lbf:6s->ucb(2s,4s,6s),c=2,w=5000" ] }
+  #  10s-10x10-4p-4f:
+  #    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    8s: { env_args: { key: [ lbforaging:Foraging-8s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    10s: { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    "ucb(2,4,6,8,10)_0919": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+  10s-10x10-4p-4f-coop:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    7s: { env_args: { key: [ lbforaging:Foraging-7s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    9s: { env_args: { key: [ lbforaging:Foraging-9s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    8s: { env_args: { key: [ lbforaging:Foraging-8s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    10s: { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6,8,10)_0919": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+  10s-10x10-4p-2f-coop:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    7s: { env_args: { key: [ lbforaging:Foraging-7s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    9s: { env_args: { key: [ lbforaging:Foraging-9s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    8s: { env_args: { key: [ lbforaging:Foraging-8s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    10s: { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6,8,10)_0919": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+  #  6s-10x10-4p-4f:
+  #    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-v1 ] } , preprocess_desc: [ null ] }
+  #    "ucb(2,4,6)_0919": { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-v1 ] } , preprocess_desc: [ "lbf:6s->ucb(2s,4s,6s),c=2,w=5000" ] }
+  6s-10x10-4p-4f-coop:
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6)_0919": { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ "lbf:6s->ucb(2s,4s,6s),c=2,w=5000" ] }
+  6s-10x10-4p-2f-coop:
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6)_0919": { env_args: { key: [ lbforaging:Foraging-6s-10x10-4p-2f-coop-v1 ] } , preprocess_desc: [ "lbf:6s->ucb(2s,4s,6s),c=2,w=5000" ] }
+  15s-15x15-3p-5f:
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    9s: { env_args: { key: [ lbforaging:Foraging-9s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    12s: { env_args: { key: [ lbforaging:Foraging-12s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    15s: { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(3,6,9,12,15)_0919": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } , preprocess_desc: [ "lbf:15s->ucb(3s,6s,9s,12s,15s),c=2,w=5000" ] }
+  6s-15x15-3p-5f:
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6)_0919": { env_args: { key: [ lbforaging:Foraging-6s-15x15-3p-5f-v1 ] } , preprocess_desc: [ "lbf:6s->ucb(2s,4s,6s),c=2,w=5000" ] }
+
+  10s-10x10-1p-2f-coop:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    7s: { env_args: { key: [ lbforaging:Foraging-7s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    9s: { env_args: { key: [ lbforaging:Foraging-9s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    8s: { env_args: { key: [ lbforaging:Foraging-8s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    10s: { env_args: { key: [ lbforaging:Foraging-10s-10x10-1p-2f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(2,4,6,8,10)_0919": { env_args: { key: [ lbforaging:Foraging-10s-10x10-1p-2f-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+
+hp_other_variables: { }
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        #        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+        map: [ '6s-10x10-4p-2f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations: [ ] # Only leave the original one and the ucb one
+      plot_config:
+        title: 'template'
+        save_path: 'lbf/1009_LBF_FORMAL_COMPLETE/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Test Return'
+        base_width: 6
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+        #
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+        hide_subtitle_description: True
+        no_show_row_names: True
+        show_subtitle: False
+        label_without_len_and_runs: True
+        label_without_overall_performance: True
+
+  plots:
+
+
+    # ====================================================================== For Main Comparison ===========================================================================================================
+
+    # Original sights and UCB
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+#        map: [ '10s-10x10-4p-2f', '10s-10x10-4p-2f-coop']
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f']
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations: # Only leave the original one and the ucb one
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) LBF - Original vs UCB'
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 's' ], color: black }
+          - { keywords: [ 'ucb' ], color: red }
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        change_ucb_name_to_original: True
+
+    # All pure sights and UCB
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '6s-10x10-4p-2f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) LBF - All Pure and UCB 6s-10x10-4p-2f-coop'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        no_show_col_names: True
+    #　Sight
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '6s-10x10-4p-2f-coop' ]
+        sight: [ 2s, 4s, 8s, 10s, 3s, 6s, 9s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919", "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        # 除去原本就不合理的組合
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+        # 再把 pure 都去掉
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+          sight: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+      plot_config:
+        title: '(main) LBF - UCB Selected Sights 6s-10x10-4p-2f-coop'
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: null
+        y_low: 0.98
+        change_ucb_name_to_dsr: True
+        no_show_col_names: True
+  # ----------------------------------------------------------------
+    # Some example of IQL, VDN, IPPO, MAPPO (all pures and DSR)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+        #        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+        sight: [ 10s, "ucb(2,4,6,8,10)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) LBF - More Alg - All Pure and DSR'
+        custom_ax_row_var: map
+        custom_ax_col_var: alg
+        col_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        col_upper: True
+        no_show_row_names: True
+        change_ucb_name_to_original: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 's' ], color: black }
+          - { keywords: [ 'ucb' ], color: red }
+
+    # Some example of IQL, VDN, IPPO, MAPPO (selected sight)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+        #        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+        sight: [ "ucb(2,4,6,8,10)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) LBF - More Alg - DSR selected sights'
+        tag: 'test_selected_sight_mean'
+        custom_ax_row_var: map
+        custom_ax_col_var: alg
+        col_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        ylabel: 'Test Selected Sight'
+
+        change_ucb_name_to_original: True
+        y_low: null
+        y_high: null
+        col_upper: True
+        no_show_row_names: True
+        no_show_col_names: True
+
+    # Some example of IQL, VDN, IPPO, MAPPO (all pures and DSR)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+        #        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+        sight: [ 10s, "ucb(2,4,6,8,10)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) for 4x2 LBF - More Alg - All Pure and DSR'
+#        custom_ax_row_var: map
+#        custom_ax_col_var: alg
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+#        col_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        row_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+#        col_upper: True
+        row_upper: True
+#        no_show_row_names: True
+        no_show_row_names: False
+        base_width: 7.5
+        base_height: 6
+        change_ucb_name_to_original: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 's' ], color: black }
+          - { keywords: [ 'ucb' ], color: red }
+        row_title_pad: 100
+
+
+
+    # Some example of IQL, VDN, IPPO, MAPPO (selected sight)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+        #        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+        sight: [ "ucb(2,4,6,8,10)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(main) for 4x2 LBF - More Alg - DSR selected sights'
+        tag: 'test_selected_sight_mean'
+#        custom_ax_row_var: map
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+#        col_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+        row_var_order: [ 'iql', 'vdn', 'ippo', 'mappo' ]
+
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        change_ucb_name_to_original: True
+        y_low: null
+        y_high: null
+        ylabel: 'Test Selected Sight'
+#        col_upper: True
+        row_upper: True
+        no_show_row_names: True
+#        no_show_col_names: True
+        no_show_col_names: False
+
+    # ============================================================== All QMIX ===========================================================================================================
+
+    # Original sights and UCB
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations: # Only leave the original one and the ucb one
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All QMIX) LBF - Original vs DSR '
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 's' ], color: black }
+          - { keywords: [ 'ucb' ], color: red }
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        change_ucb_name_to_original: True
+
+#    # Original sights and UCB (Aggregated)
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        alg: [ 'qmix' ]
+#        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+#        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+#      skip_var_combinations: # Only leave the original one and the ucb one
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+#          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '15s-15x15-3p-5f' ]
+#          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+#      plot_config:
+#        title: '(All QMIX) LBF - Original vs DSR '
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 's' ], color: black }
+#          - { keywords: [ 'ucb' ], color: red }
+#        change_pure_sight_name_to_no_dsr: True
+#        change_ucb_name_to_dsr: True
+#        change_ucb_name_to_original: True
+#        output_each_run_data: True
+
+    # All pure sights and DSR
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All QMIX) LBF - All Pure and DSR'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+#        use_iqm: True
+#        band: 'ci'
+
+    #　Sight
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 2s, 4s, 8s, 10s, 3s, 6s, 9s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919", "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        # 除去原本就不合理的組合
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+        # 再把 pure 都去掉
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+          sight: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+      plot_config:
+        title: '(All QMIX) LBF - UCB Selected Sights'
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: null
+        y_low: 0.98
+        change_ucb_name_to_dsr: True
+
+
+    # ============================================================== All Alg ===========================================================================================================
+
+    # Original sights and UCB
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations: # Only leave the original one and the ucb one
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All Results) LBF - Original vs DSR '
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 's' ], color: black }
+          - { keywords: [ 'ucb' ], color: red }
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        change_ucb_name_to_original: True
+        no_show_row_names: False
+        no_show_col_names: False
+        row_upper: True
+
+    # All pure sights and DSR
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg:  [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" , "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All Results) LBF - All Pure and DSR'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        no_show_row_names: False
+        no_show_col_names: False
+        row_upper: True
+
+    # All pure sights
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg:  [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 10s, 12s, 15s,  ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All Results) LBF - All Pure'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        no_show_row_names: False
+        no_show_col_names: False
+        row_upper: True
+        row_title_pad: 150
+
+    # All pure sights (4p-2f-10s) QMIX
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg:  [  'qmix'  ]
+        map: [ '10s-10x10-4p-2f' ]
+        sight: [ 4s, 6s, 8s, 10s   ]
+      skip_var_combinations:
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 2s, 4s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(All Results) LBF - All Pure 4p-2f-10s QMIX'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        no_show_row_names: True
+        no_show_col_names: False
+        row_upper: True
+        row_title_pad: 150
+
+    #　Sight
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg:  [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop' ]
+        sight: [ 2s, 4s, 8s, 10s, 3s, 6s, 9s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919", "ucb(3,6,9,12,15)_0919" ]
+      skip_var_combinations:
+        # 除去原本就不合理的組合
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '15s-15x15-3p-5f' ]
+          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+        # 再把 pure 都去掉
+        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+          map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+          sight: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+      plot_config:
+        title: '(All Results) LBF - UCB Selected Sights'
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: null
+        y_low: 0.98
+        change_ucb_name_to_dsr: True
+        no_show_row_names: False
+        no_show_col_names: False
+        row_upper: True
+
+
+
+    # All pure sights and DSR (detailed)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-2f-coop' ]
+#        sight: [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        sight: [ 1s, 5s, 10s ]
+      skip_var_combinations: []
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(x) LBF - All Pure and DSR detailed 4p2fCoop'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+        pure_sights: [ 1s, 5s, 10s ]
+#        pure_sights:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        row_title_pad: 50
+
+    # All pure sights and DSR (detailed)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+#        sight:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        sight: [ 1s, 3s, 5s ]
+      skip_var_combinations: []
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(x) LBF - All Pure and DSR detailed 4p4fCoop'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+#        pure_sights:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        pure_sights:   [ 1s, 3s, 5s ]
+        row_title_pad: 50
+
+
+    # All pure sights and DSR (detailed)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+#        sight:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        sight: [ 1s, 2s, 3s ]
+      skip_var_combinations: []
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(x) LBF - All Pure and DSR detailed 4p4fCoop 1 3 5'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+#        pure_sights:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        pure_sights:   [ 1s, 3s, 5s ]
+        row_title_pad: 50
+
+
+
+    # All pure sights and DSR (detailed)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-1p-2f-coop' ] # When number of ply = 1, w/ coop equals to w/o coop
+        sight:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+#        sight: [ 1s, 3s, 5s ]
+      skip_var_combinations: []
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(x) LBF - All Pure and DSR detailed 1p2fCoop'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+        pure_sights:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+#        pure_sights:   [ 1s, 3s, 5s ]
+        row_title_pad: 50
+
+
+    # All pure sights and DSR (detailed)
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '10s-10x10-4p-4f-coop' ]
+#        sight:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+        sight: [ 1s, 2s ]
+      skip_var_combinations: []
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+      plot_config:
+        title: '(x) LBF - All Pure and DSR detailed 4p4fCoop 1 2'
+        change_pure_sight_name_to_no_dsr: True
+        change_ucb_name_to_dsr: True
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        base_width: 4
+        base_height: 4
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ '1s' ], color: 'lightskyblue' }
+          - { keywords: [ '2s' ], color: 'dodgerblue' }
+#        pure_sights:  [ 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s ]
+#        pure_sights:   [ 1s, 2s ]
+        pure_sights:   null
+        row_title_pad: 50
+
+
+#  # @@@@@@@@@@@@@@@@@@@@@@@@@@@ 5 alg
+#
+#    #　===================== Return =====================
+#    # All pure sights and UCB
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        alg: [ 'qmix', 'mappo' ]
+#      skip_var_combinations:
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+#          sight: [ 3s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '15s-15x15-3p-5f' ]
+#          sight: [ 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+#      plot_config: { title: 'LBF - All Pure and UCB' }
+#    # Original sights and UCB
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        alg: [ 'qmix', 'mappo' ]
+#      plot_config:
+#        title: 'LBF - Original vs UCB'
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 's' ], color: black }
+#          - { keywords: [ 'ucb' ], color: red }
+#        label_without_len_and_runs: True
+#        label_without_overall_performance: False
+#    #　===================== Sight =====================
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        alg: [ 'qmix', 'mappo' ]
+#        sight: [ 2s, 4s, 8s, 10s, 3s, 6s, 9s, 12s, 15s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919", "ucb(3,6,9,12,15)_0919" ]
+#      skip_var_combinations:
+#        # 除去原本就不合理的組合
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '6s-10x10-4p-2f', '6s-10x10-4p-4f', '6s-10x10-4p-2f-coop', '6s-10x10-4p-4f-coop', '6s-15x15-3p-5f' ]
+#          sight: [ 3s, 2s, 4s, 9s, 12s, 15s, 8s, 10s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6,8,10)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '10s-10x10-4p-4f', '10s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop' ]
+#          sight: [ 3s, 2s, 4s, 6s, 8s, 9s, 12s, 15s, "ucb(3,6,9,12,15)_0919", "ucb(2,4,6)_0919" ]
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '15s-15x15-3p-5f' ]
+#          sight: [ 3s, 6s, 9s, 12s, 2s, 4s, 6s, 8s, 10s, "ucb(2,4,6,8,10)_0919", "ucb(2,4,6)_0919" ]
+#        # 再把 pure 都去掉
+#        - alg: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+#          map: [ '10s-10x10-4p-2f', '6s-10x10-4p-2f', '10s-10x10-4p-2f-coop', '6s-10x10-4p-2f-coop', '10s-10x10-4p-4f-coop', '6s-10x10-4p-4f-coop', '15s-15x15-3p-5f', '6s-15x15-3p-5f' ]
+#          sight: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+#      plot_config:
+#        title: 'LBF - UCB Selected Sights'
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Sight'
+#        y_high: null
+#        y_low: 0.98
+

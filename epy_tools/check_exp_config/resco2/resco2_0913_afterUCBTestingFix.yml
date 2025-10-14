@@ -1,0 +1,248 @@
+parent: epy_tools/check_exp_config/shared/resco2.yml
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'RESCO2 0913 template - base'
+      exp_vars:
+        alg: [ 'mappo' ]
+        map:
+          - ingolstadt7
+          - ingolstadt7r0.7
+          - ingolstadt7-scale2
+          - arterial4x4
+          - cologne3
+          - ingolstadt21
+          - cologne8
+        sight:
+          - "0s"
+          - "5s"
+          - "10s"
+          - "25s"
+          - "50s"
+          - "100s"
+          - "200s"
+          - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500"
+          - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2000_add2000"
+          - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2500_add2500"
+          - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div8000_add8000"
+          - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div16000_add16000"
+          - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+          - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+          - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+          - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+          - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+          - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+          - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+          - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+          - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+          - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+      skip_var_combinations:
+        - alg: [ 'mappo' ]
+          map: [ 'ingolstadt7' ]
+          sight:
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+            - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+            - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+            - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div16000_add16000"
+            - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+            - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+        - alg: [ 'mappo' ]
+          map: [ 'cologne3' ]
+          sight:
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+            - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+            - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+            - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div16000_add16000"
+            - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+            - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+        - alg: [ 'mappo' ]
+          map: [ 'cologne8' ]
+          sight:
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+            - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+            - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+            - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div16000_add16000"
+            - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+            - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+        - alg: [ 'mappo' ]
+          map: [ 'ingolstadt7r0.7', 'ingolstadt7-scale2', 'ingolstadt21' ]
+          sight:
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+            - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+            - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+            - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div16000_add16000"
+            - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+            - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+        - alg: [ 'mappo' ]
+          map: [ 'arterial4x4' ]
+          sight:
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+            - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+            - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+            - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+            - "ucb(25,50,75,100,125,150,175,200)_c1_w1000_div8000_add8000"
+            - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+            - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+      plot_config:
+        title: 'template'
+        save_path: 'resco2/0913/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: null
+        y_high: null
+        ylabel: 'Test Return'
+        base_width: 8
+        base_height: 12
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 0s, 5s, 10s, 25s, 50s, 100s, 200s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2', 'arterial4x4', 'cologne3', 'ingolstadt21', 'cologne8' ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb(25,50,75,100,125,150,175,200)' ], color: green }
+          - { keywords: [ 'ucb(50,100,150,200)' ], color: red }
+          - { keywords: [ 'ucb(25,50,75,100)' ], color: orange }
+          - { keywords: [ '200s' ], color: black }
+
+
+  plots:
+#    # ================ Test Return ================
+#    - template_name: 'RESCO2 0913 template - base'
+#      plot_config: { title: 'RESCO2 - Test Return' }
+#    - template_name: 'RESCO2 0913 template - base'
+#      exp_vars:
+#        map: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2' ]
+#      plot_config:
+#        title: 'RESCO2 - Test Return (ing7 vs ing7r0.7 vs ing7-scale2)'
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'ucb(50,100,150,200)' ], color: red }
+#          - { keywords: [ 'ucb(25' ], alpha: 0.0 }
+#          - { keywords: [ '200s' ], color: black }
+#
+#
+#    # ================ Selected Sight ================
+#    - template_name: 'RESCO2 0913 template - base'
+#      exp_vars:
+#        alg: [ 'mappo' ]
+#        map: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2', 'arterial4x4', 'cologne3', 'ingolstadt21', 'cologne8' ]
+#        sight:
+#          - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+#          - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+#          - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+#          - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+#          - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+#      plot_config:
+#        title: 'RESCO2 - test_selected_sight_mean (4 options: 25,50,75,100)'
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Ratio'
+#        y_high: 4.02
+#        y_low: 0.98
+#    - template_name: 'RESCO2 0913 template - base'
+#      exp_vars:
+#        alg: [ 'mappo' ]
+#        map: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2', 'arterial4x4', 'cologne3', 'ingolstadt21', 'cologne8' ]
+#        sight:
+#          - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+#          - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+#          - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+#          - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+#          - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+#      plot_config:
+#        title: 'RESCO2 - test_selected_sight_mean (4 options: 50,100,150,200)'
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Ratio'
+#        y_high: 4.02
+#        y_low: 0.98
+#    - template_name: 'RESCO2 0913 template - base'
+#      exp_vars:
+#        alg: [ 'mappo' ]
+#        map: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2' ]
+#        sight:
+#          - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+#          - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+#          - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+#          - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+#          - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+#      plot_config:
+#        title: 'RESCO2 - test_selected_sight_mean (4 options: 50,100,150,200) (ing7 vs ing7r0.7 vs ing7-scale2)'
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Ratio'
+#        y_high: 4.02
+#        y_low: 0.98
+#    - template_name: 'RESCO2 0913 template - base'
+#      skip_var_combination:
+#        - alg: [ 'mappo' ]
+#          map: [ 'ingolstadt7', 'ingolstadt7r0.7', 'ingolstadt7-scale2', 'arterial4x4', 'cologne3', 'ingolstadt21', 'cologne8' ]
+#          sight:
+#            - "ucb(25,50,75,100)_c1_w1000_div1500_add1500"
+#            - "ucb(50,100,150,200)_c1_w1000_div1500_add1500"
+#            - "ucb(25,50,75,100)_c1_w1000_div2000_add2000"
+#            - "ucb(50,100,150,200)_c1_w1000_div2000_add2000"
+#            - "ucb(25,50,75,100)_c1_w1000_div2500_add2500"
+#            - "ucb(50,100,150,200)_c1_w1000_div2500_add2500"
+#            - "ucb(25,50,75,100)_c1_w1000_div8000_add8000"
+#            - "ucb(50,100,150,200)_c1_w1000_div8000_add8000"
+#            - "ucb(25,50,75,100)_c1_w1000_div16000_add16000"
+#            - "ucb(50,100,150,200)_c1_w1000_div16000_add16000"
+#      plot_config:
+#        title: 'RESCO2 - test_selected_sight_mean (8 options: 25 to 200)'
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Ratio'
+#        y_high: 8.02
+#        y_low: 0.98
+    # ========= Queue Length =========
+    - template_name: 'RESCO2 0913 template - base'
+      plot_config:
+        title: 'RESCO2 - avg_step_avg_signal_queue_length_mean'
+        tag: 'test_resco2/avg_step_avg_signal_queue_length_mean'
+        ylabel: 'Queue Length'
+    - template_name: 'RESCO2 0913 template - base'
+      plot_config:
+        title: 'RESCO2 - avg_step_avg_signal_max_queue_mean'
+        tag: 'test_resco2/avg_step_avg_signal_max_queue_mean'
+        ylabel: 'Queue Length'
+
+
+
+

@@ -1,0 +1,423 @@
+domain: LBF
+
+map_to_sight_to_sight_and_env_id:
+  tiny-1ag:
+    1s: { env_id: robotic_warehouse:rware-tiny-1ag-1s-v1, preprocess_desc: null }
+    2s: { env_id: robotic_warehouse:rware-tiny-1ag-2s-v1, preprocess_desc: null }
+    3s: { env_id: robotic_warehouse:rware-tiny-1ag-3s-v1, preprocess_desc: null }
+    4s: { env_id: robotic_warehouse:rware-tiny-1ag-4s-v1, preprocess_desc: null }
+    5s: { env_id: robotic_warehouse:rware-tiny-1ag-5s-v1, preprocess_desc: null }
+    "ucb(1,2,3,4,5),c=1,w=10000": { env_id: robotic_warehouse:rware-tiny-1ag-5s-v1,
+                                    preprocess_desc: "rware:5s->ucb(1s,2s,3s,4s,5s),c=1,w=10000" }
+    "ucb(1,2,3),c=1,w=10000": { env_id: robotic_warehouse:rware-tiny-1ag-3s-v1,
+                                preprocess_desc: "rware:3s->ucb(1s,2s,3s),c=1,w=10000" }
+  tiny-1ag-5s:
+    1s: { env_id: robotic_warehouse:rware-tiny-1ag-1s-v1, preprocess_desc: null }
+    2s: { env_id: robotic_warehouse:rware-tiny-1ag-2s-v1, preprocess_desc: null }
+    3s: { env_id: robotic_warehouse:rware-tiny-1ag-3s-v1, preprocess_desc: null }
+    4s: { env_id: robotic_warehouse:rware-tiny-1ag-4s-v1, preprocess_desc: null }
+    5s: { env_id: robotic_warehouse:rware-tiny-1ag-5s-v1, preprocess_desc: null }
+    "ucb(1,2,3,4,5),c=1,w=10000": { env_id: robotic_warehouse:rware-tiny-1ag-5s-v1,
+                                    preprocess_desc: "rware:5s->ucb(1s,2s,3s,4s,5s),c=1,w=10000" }
+    "ucb(1,2,3),c=1,w=10000": { env_id: robotic_warehouse:rware-tiny-1ag-3s-v1,
+                                preprocess_desc: "rware:3s->ucb(1s,2s,3s),c=1,w=10000" }
+  tiny-2ag-easy-5s:
+
+
+map_id_abbreviation:
+  tiny-1ag-5s: robotic_warehouse:rware-tiny-1ag-5s-v1
+  tiny-2ag-easy-5s: robotic_warehouse:rware-tiny-2ag-easy-5s-v1
+  tiny-2ag-5s: robotic_warehouse:rware-tiny-2ag-5s-v1
+  small-2ag-5s: robotic_warehouse:rware-small-2ag-5s-v1
+  tiny-1ag-4s: robotic_warehouse:rware-tiny-1ag-4s-v1
+  tiny-2ag-easy-4s: robotic_warehouse:rware-tiny-2ag-easy-4s-v1
+  tiny-2ag-4s: robotic_warehouse:rware-tiny-2ag-4s-v1
+  small-2ag-4s: robotic_warehouse:rware-small-2ag-4s-v1
+  tiny-1ag-3s: robotic_warehouse:rware-tiny-1ag-3s-v1
+  tiny-2ag-easy-3s: robotic_warehouse:rware-tiny-2ag-easy-3s-v1
+  tiny-2ag-3s: robotic_warehouse:rware-tiny-2ag-3s-v1
+  small-2ag-3s: robotic_warehouse:rware-small-2ag-3s-v1
+  tiny-1ag-2s: robotic_warehouse:rware-tiny-1ag-2s-v1
+  tiny-2ag-easy-2s: robotic_warehouse:rware-tiny-2ag-easy-2s-v1
+  tiny-2ag-2s: robotic_warehouse:rware-tiny-2ag-2s-v1
+  small-2ag-2s: robotic_warehouse:rware-small-2ag-2s-v1
+  tiny-1ag-1s: robotic_warehouse:rware-tiny-1ag-1s-v1
+  tiny-2ag-easy-1s: robotic_warehouse:rware-tiny-2ag-easy-1s-v1
+  tiny-2ag-1s: robotic_warehouse:rware-tiny-2ag-1s-v1
+  small-2ag-1s: robotic_warehouse:rware-small-2ag-1s-v1
+
+
+seeds: [ 0, 1, 2, 3, 4 ]
+
+# --- 給定超參數的範圍 ---
+all_shared_hyperparameters: # 所有 alg 超參的 base (all_shared -> group -> alg custom)
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    - { 'key': 'robotic_warehouse:rware-tiny-1ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-easy-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-small-2ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-1ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-easy-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-small-2ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-1ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-easy-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-small-2ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-1ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-easy-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-small-2ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-1ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-easy-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-tiny-2ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'key': 'robotic_warehouse:rware-small-2ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-1ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-easy-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-small-2ag-5s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-1ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-easy-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-small-2ag-4s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-1ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-easy-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-small-2ag-3s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-1ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-easy-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-small-2ag-2s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-1ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-easy-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-tiny-2ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+    - { 'add_sight_id_len': null, 'key': 'robotic_warehouse:rware-small-2ag-1s-v1', 'pretrained_wrapper': null, 'time_limit': 500 }
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc:
+    - "rware:5s->ucb(1s,2s,3s,4s,5s),c=1,w=10000"
+    - "rware:3s->ucb(1s,2s,3s),c=1,w=10000"
+    - null
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_interval: [ 50000 ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_check_interval: [ 0 ]
+  dormant_n_batches: [ 32 ]
+  policy_diff_interval_1: [ 0 ]
+  policy_diff_interval_2: [ 0 ]
+  policy_diff_interval_3: [ 0 ]
+
+
+all_skipped_hyperparameters: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+
+
+#all_do_not_have_hyperparameters: # 不能列在config.json的超參，若有也得設成 None # TODO: 需要時實作
+
+hyperparameter_groups:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 1000000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 500 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0005 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+  ppo:
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+
+
+
+
+
+# 由於會檢查是否所有有註記在此的超參都有在config.json，若是有些超參是不需要的，或是後來新增但不影響的，
+# 可以加到個別演算法的： `not_having_ok_hyperparameters`，不然會報錯
+possible_algorithms:
+  iql:
+    min_n_tests: 601 # 30M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  vdn:
+    min_n_tests: 601 # 30M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ vdn ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  qmix:
+    min_n_tests: 601 # 30M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+  ippo:
+    min_n_tests: 1001
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "ac_critic" ], target_update_interval_or_tau: [ 200 ] }
+    not_having_ok_hyperparameters: { }
+  mappo:
+    min_n_tests: 1001
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters: { }
+test_interval: 50000
+
+
+maps:
+  tiny-1ag-5s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 5s, 'ucb(1,2,3,4,5),c=1,w=10000' ]
+  tiny-2ag-easy-5s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 5s, 'ucb(1,2,3,4,5),c=1,w=10000' ]
+  tiny-2ag-5s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 5s, 'ucb(1,2,3,4,5),c=1,w=10000' ]
+  small-2ag-5s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 5s, 'ucb(1,2,3,4,5),c=1,w=10000' ]
+  tiny-1ag-4s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 4s ]
+  tiny-2ag-easy-4s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 4s ]
+  tiny-2ag-4s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 4s ]
+  small-2ag-4s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 4s ]
+  tiny-1ag-3s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 3s, 'ucb(1,2,3),c=1,w=10000' ]
+  tiny-2ag-easy-3s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 3s, 'ucb(1,2,3),c=1,w=10000' ]
+  tiny-2ag-3s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 3s, 'ucb(1,2,3),c=1,w=10000' ]
+  small-2ag-3s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 3s, 'ucb(1,2,3),c=1,w=10000' ]
+  tiny-1ag-2s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 2s ]
+  tiny-2ag-easy-2s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 2s ]
+  tiny-2ag-2s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 2s ]
+  small-2ag-2s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 2s ]
+  tiny-1ag-1s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s ]
+  tiny-2ag-easy-1s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s ]
+  tiny-2ag-1s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s ]
+  small-2ag-1s:
+    algorithms: [ iql, vdn, qmix, ippo, mappo ]
+    sights: [ 1s ]
+
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  # 1. Original 5s vs UCB(1,2,3,4,5)
+  # 2. Original 3s vs UCB(1,2,3)
+  # 3. All pure and ucb
+
+  # ======= All Pure 1~6+15 vs UCB =======
+  - title: 'RWARE Original 5s'
+    n_tag_data: 601
+    envs:
+      - robotic_warehouse:rware-tiny-1ag-5s-v1
+      - robotic_warehouse:rware-tiny-2ag-easy-5s-v1
+      - robotic_warehouse:rware-tiny-2ag-5s-v1
+      - robotic_warehouse:rware-small-2ag-5s-v1
+    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+    #    algorithms: [ 'iql', 'vdn', 'qmix' ]
+    sights: [ 5s, 'ucb(1,2,3,4,5),c=1,w=10000' ]
+    #    band: 'ci' # 'ci' or 'stderr' or 'minmax' or 'std'
+    #    band: 'stderr' # 'ci' or 'stderr' or 'minmax'
+    band: 'std' # 'ci' or 'stderr' or 'minmax'
+    plot_skip: 1
+    base_width: 12
+    base_height: 9
+    y_low: 0.
+    no_show: True
+    erase_env_strings: [ "robotic_warehouse:rware-" ]
+    save_path: 'rware_original5s_testReturnMean.png'
+    # 標色
+    list_of_assigned_styles_and_keywords:
+      - { keywords: [ 'ucb(1,2,3,4,5),c=1,w=10000' ], color: 'red' }
+    # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+    pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+
+  - title: 'RWARE Original 3s'
+    n_tag_data: 601
+
+    envs:
+      - robotic_warehouse:rware-tiny-1ag-3s-v1
+      - robotic_warehouse:rware-tiny-2ag-easy-3s-v1
+      - robotic_warehouse:rware-tiny-2ag-3s-v1
+      - robotic_warehouse:rware-small-2ag-3s-v1
+    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+    #    algorithms: [ 'iql', 'vdn', 'qmix' ]
+    sights: [ 3s, 'ucb(1,2,3),c=1,w=10000' ]
+    #    band: 'ci' # 'ci' or 'stderr' or 'minmax' or 'std'
+    #    band: 'stderr' # 'ci' or 'stderr' or 'minmax'
+    band: 'std' # 'ci' or 'stderr' or 'minmax'
+    plot_skip: 1
+    base_width: 12
+    base_height: 9
+    y_low: 0.
+    no_show: True
+    erase_env_strings: [ "robotic_warehouse:rware-" ]
+    save_path: 'rware_original3s_testReturnMean.png'
+    # 標色
+    list_of_assigned_styles_and_keywords:
+      - { keywords: [ 'ucb(1,2,3),c=1,w=10000' ], color: 'red' }
+    # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+    pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+
+  #  - title: 'RWARE'
+  #    envs:
+  #      - lbforaging-Foraging-15s-15x15-1p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-3p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-coop-v1
+  #    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+  #    #    algorithms: [ 'iql', 'vdn', 'qmix' ]
+  #    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15)' ]
+  #    #    band: 'ci' # 'ci' or 'stderr' or 'minmax' or 'std'
+  #    #    band: 'stderr' # 'ci' or 'stderr' or 'minmax'
+  #    band: 'std' # 'ci' or 'stderr' or 'minmax'
+  #    plot_skip: 1
+  #    y_low: 0.
+  #    y_high: 1.
+  #    base_width: 10
+  #    base_height: 6
+  #    no_show: True
+  #    erase_env_strings: [ "lbforaging-Foraging-" ]
+  #    save_path: 'lbf_test_return_mean_valueBased.png'
+  #    # 標色
+  #    list_of_assigned_color_and_keywords:
+  #      - { keywords: [ 'ucb(1,2,3,4,5,6,15)' ], color: 'red' }
+
+  #  # [Policy-based] Pure 1~6+15 vs UCB
+  #  - envs:
+  #      - lbforaging-Foraging-15s-15x15-1p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-3p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-v1
+  #      - lbforaging-Foraging-15s-15x15-4p-5f-coop-v1
+  #    #    algorithms: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+  #    algorithms: [ 'ippo', 'mappo' ]
+  #    sights: [ 1s, 2s, 3s, 4s, 5s, 6s, 15s, 'ucb(1,2,3,4,5,6,15)' ]
+  #    ci: 'ci'
+  #    plot_skip: 1
+  #    y_low: 0.
+  #    no_show: True
+  #    erase_env_strings: [ "lbforaging-Foraging-" ]
+  #    save_path: 'lbf_test_return_mean_policyBased.png'
+  #    # 標色
+  #    list_of_assigned_color_and_keywords:
+  #      - { keywords: [ 'ucb(1,2,3,4,5,6,15)' ], color: 'red' }
+
+
+  # Original vs UCB
+
+
+
+
+

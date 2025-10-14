@@ -1,0 +1,600 @@
+#  python epy_tools/check_and_plot.py -f projects/LBF/sacred_FORMAL_COMPLETE/ -c epy_tools/check_exp_config/lbf/lbf_1010_FORMAL_COMPLETE.yml -no-check
+
+domain: LBF
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+  # 對於以下 FAS 設定的 TODO: 未來多一個欄位，檢查若有此變數，要什麼值才可以；若不存在，則skip
+  - use_fas
+  - fas_lambda
+  - fas_dynamic
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    add_sight_id_len: [ null ]
+    key: [ ]
+    pretrained_wrapper: [ null ]
+    time_limit: [ 50 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ null ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_n_batches: [ 32 ]
+  dormant_check_interval: [ 0 ]
+  policy_diff_interval_1: [ 0 ]
+  policy_diff_interval_2: [ 0 ]
+  policy_diff_interval_3: [ 0 ]
+
+hp_alg_group:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 200000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0003 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 50000 ]
+  ppo:
+    hidden_dim: [ 64 ]
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    test_interval: [ 50000 ]
+
+
+hp_alg:
+  iql:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  vdn:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ vdn ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  qmix:
+    min_n_tests: 101 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  ippo:
+    min_n_tests: 101
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "ac_critic" ], target_update_interval_or_tau: [ 200 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  mappo:
+    min_n_tests: 101
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+
+hp_map_sight:
+  10s-10x10-4p-4f-coop:
+    "DSR_c0": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=0,w=5000" ] }
+    "DSR_c0.1": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=0.1,w=5000" ] }
+    "DSR_c10000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=10000,w=5000" ] }
+    "DSR_c99999999999": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=99999999999,w=5000" ] }
+
+    "DSR_c0.5": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=0.5,w=5000" ] }
+    "DSR_c1.5": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=1.5,w=5000" ] }
+    "DSR_c5": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=5,w=5000" ] }
+    "DSR_c1": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=1,w=5000" ] }
+    "DSR_c20": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=20,w=5000" ] }
+    "DSR_c2": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+    "DSR_c10": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=10,w=5000" ] }
+    "DSR_c2.5": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2.5,w=5000" ] }
+    "DSR_c100": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=100,w=5000" ] }
+    "DSR_c3": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=3,w=5000" ] }
+    "DSR_w10": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=10" ] }
+    "DSR_w100": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=100" ] }
+    "DSR_w1000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=1000" ] }
+    "DSR_w99999999999": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=99999999999" ] }
+    "DSR_w10000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [ "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=10000" ] }
+    "DSR_w4000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=4000" ] }
+    "DSR_w5000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+    "DSR_w2500": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=2500" ] }
+    "DSR_w6000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=6000" ] }
+    "DSR_w3000": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=3000" ] }
+    "DSR_w7500": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=7500" ] }
+    "DSR_ucb(1,2,3,4,5,6,7,8,9,10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(1s,2s,3s,4s,5s,6s,7s,8s,9s,10s),c=2,w=5000" ] }
+    "DSR_ucb(3,6,10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(3s,6s,10s),c=2,w=5000" ] }
+    "DSR_ucb(2,6,10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,6s,10s),c=2,w=5000" ] }
+    "DSR_ucb(1,6,10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(1s,6s,10s),c=2,w=5000" ] }
+    "DSR_ucb(2,4,6,8,10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+    "DSR_ucb(10)": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ] } , preprocess_desc: [  null ] }
+    "DSR_addSightOneHot": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ], add_sight_id_len: [ 5 ] } , preprocess_desc: [   "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000" ] }
+    "DSR_noSightOneHot": { env_args: { key: [ lbforaging:Foraging-10s-10x10-4p-4f-coop-v1 ], add_sight_id_len: [ null ] } , preprocess_desc: [   "lbf:10s->ucb(2s,4s,6s,8s,10s),c=2,w=5000"  ] }
+
+hp_other_variables: { }
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [  '10s-10x10-4p-4f-coop' ]
+        sight:
+          # c
+          - 'DSR_c0.5'
+          - 'DSR_c1.5'
+          - 'DSR_c5'
+          - 'DSR_c1'
+          - 'DSR_c20'
+          - 'DSR_c2'
+          - 'DSR_c10'
+          - 'DSR_c2.5'
+          - 'DSR_c100'
+          - 'DSR_c3'
+          # w
+          - 'DSR_w10000'
+          - 'DSR_w4000'
+          - 'DSR_w5000'
+          - 'DSR_w2500'
+          - 'DSR_w6000'
+          - 'DSR_w3000'
+          - 'DSR_w7500'
+          # sight list
+          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+          - 'DSR_ucb(2,4,6,8,10)'
+          - 'DSR_ucb(3,6,10)'
+          - 'DSR_ucb(2,6,10)'
+          - 'DSR_ucb(1,6,10)'
+          - 'DSR_ucb(10)'
+          # Add sight one-hot
+          - 'DSR_addSightOneHot'
+          - 'DSR_noSightOneHot'
+      skip_var_combinations: [ ] # Only leave the original one and the ucb one
+      plot_config:
+        title: 'template'
+        save_path: 'lbf/1013_LBF_FORMAL_UCB_ABLATION/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Test Return'
+        base_width: 6
+        base_height: 6
+        no_show: True
+        #        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        #        pure_sights: [ 2s, 3s, 4s, 6s, 8s, 9s, 10s, 12s, 15s ]
+        #
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        #        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        #        col_var_order: [ '10s-10x10-4p-2f-v1', '6s-10x10-4p-2f-v1', '10s-10x10-4p-2f-coop-v1', '6s-10x10-4p-2f-coop-v1', '10s-10x10-4p-4f-coop-v1', '6s-10x10-4p-4f-coop-v1', '15s-15x15-3p-5f-v1', '6s-15x15-3p-5f-v1' ]
+        #        list_of_assigned_styles_and_keywords:
+        #          - { keywords: [ 'ucb' ], color: red }
+        hide_subtitle_description: True
+        no_show_row_names: True
+        show_subtitle: False
+        label_without_len_and_runs: True
+        label_without_overall_performance: True
+
+  plots:
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@ QMIX
+    #　===================== Each Hyperparameter: Return =====================
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # c
+          - 'DSR_c0.5'
+          - 'DSR_c1'
+          - 'DSR_c2'
+          - 'DSR_c5'
+      plot_config:
+        title: 'LBF Ablation - Return: c'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'c0.5' ], color: 'C1' }
+          - { keywords: [ 'c1' ], color: 'C2' }
+          - { keywords: [ 'c2' ], color: red }
+          - { keywords: [ 'c5' ], color: 'C3' }
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # w
+          - 'DSR_w2500'
+          - 'DSR_w5000'
+          - 'DSR_w7500'
+          - 'DSR_w10000'
+      plot_config:
+        title: 'LBF Ablation - Return: w'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'w2500' ], color: 'C1' }
+          - { keywords: [ 'w7500' ], color: 'C2' }
+          - { keywords: [ 'w5000' ], color: red }
+          - { keywords: [ 'w10000' ], color: 'C3' }
+
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # sight list
+          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+          - 'DSR_ucb(2,4,6,8,10)'
+          - 'DSR_ucb(2,6,10)'
+          - 'DSR_ucb(1,6,10)'
+      plot_config:
+        title: 'LBF Ablation - Return: sight list'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'DSR_ucb(1,6,10)' ], color: 'C1' }
+          - { keywords: [ 'DSR_ucb(2,6,10)' ], color: 'C2' }
+          - { keywords: [ 'DSR_ucb(2,4,6,8,10)' ], color: red }
+          - { keywords: [ 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)' ], color: 'C3' }
+
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # sight list
+          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+          - 'DSR_ucb(2,4,6,8,10)'
+#          - 'DSR_ucb(2,6,10)'
+#          - 'DSR_ucb(1,6,10)'
+      plot_config:
+        title: 'LBF Ablation - Return: sight list (only large)'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'DSR_ucb(1,6,10)' ], color: 'C1' }
+#          - { keywords: [ 'DSR_ucb(2,6,10)' ], color: 'C2' }
+          - { keywords: [ 'DSR_ucb(2,4,6,8,10)' ], color: red }
+          - { keywords: [ 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)' ], color: 'C3' }
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # sight list
+#          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+#          - 'DSR_ucb(2,4,6,8,10)'
+          - 'DSR_ucb(2,6,10)'
+          - 'DSR_ucb(1,6,10)'
+      plot_config:
+        title: 'LBF Ablation - Return: sight list (only small)'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'DSR_ucb(1,6,10)' ], color: 'C1' }
+          - { keywords: [ 'DSR_ucb(2,6,10)' ], color: 'C2' }
+#          - { keywords: [ 'DSR_ucb(2,4,6,8,10)' ], color: red }
+#          - { keywords: [ 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)' ], color: 'C3' }
+
+
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # Add sight one-hot
+          - 'DSR_addSightOneHot'
+          - 'DSR_noSightOneHot'
+      plot_config:
+        title: 'LBF Ablation - Return: sight one-hot'
+        sort_legend_by_suffix_digits: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'DSR_addSightOneHot' ], color: 'C1' }
+          - { keywords: [ 'DSR_noSightOneHot' ], color: red }
+
+
+    #　===================== Each Hyperparameter: Sight =====================
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # c
+          - 'DSR_c0.5'
+          - 'DSR_c1'
+          - 'DSR_c2'
+          - 'DSR_c5'
+      plot_config:
+        title: 'LBF Ablation - Test Selected Sight: c'
+        sort_legend_by_suffix_digits: True
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: 11
+        y_low: 0
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'c0.5' ], color: 'C1' }
+          - { keywords: [ 'c1' ], color: 'C2' }
+          - { keywords: [ 'c2' ], color: red }
+          - { keywords: [ 'c5' ], color: 'C3' }
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # w
+          - 'DSR_w2500'
+          - 'DSR_w5000'
+          - 'DSR_w7500'
+          - 'DSR_w10000'
+      plot_config:
+        title: 'LBF Ablation - Test Selected Sight: w'
+        sort_legend_by_suffix_digits: True
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: 11
+        y_low: 0
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'w2500' ], color: 'C1' }
+          - { keywords: [ 'w7500' ], color: 'C2' }
+          - { keywords: [ 'w5000' ], color: red }
+          - { keywords: [ 'w10000' ], color: 'C3' }
+
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # sight list
+          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+          - 'DSR_ucb(2,4,6,8,10)'
+          - 'DSR_ucb(2,6,10)'
+          - 'DSR_ucb(1,6,10)'
+      plot_config:
+        title: 'LBF Ablation - Test Selected Sight: sight list'
+        sort_legend_by_suffix_digits: True
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: 11
+        y_low: 0
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'DSR_ucb(1,6,10)' ], color: 'C1' }
+          - { keywords: [ 'DSR_ucb(2,6,10)' ], color: 'C2' }
+          - { keywords: [ 'DSR_ucb(2,4,6,8,10)' ], color: red }
+          - { keywords: [ 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)' ], color: 'C3' }
+    - template_name: 'LBF_template - base'
+      exp_vars:
+        sight:
+          # Add sight one-hot
+          - 'DSR_addSightOneHot'
+          - 'DSR_noSightOneHot'
+      plot_config:
+        title: 'LBF Ablation - Test Selected Sight: sight one-hot'
+        sort_legend_by_suffix_digits: True
+        tag: 'test_selected_sight_mean'
+        ylabel: 'Test Selected Sight'
+        y_high: 11
+        y_low: 0
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'DSR_addSightOneHot' ], color: 'C1' }
+          - { keywords: [ 'DSR_noSightOneHot' ], color: red }
+
+#    # @@@@@@@@@@@@@@@@@@@@@@@@@@@ QMIX
+#    #　===================== Each Hyperparameter: Return =====================
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # c
+#          - 'DSR_c0.5'
+#          - 'DSR_c5'
+#          - 'DSR_c1'
+##          - 'DSR_c20'
+#          - 'DSR_c2'
+##          - 'DSR_c10'
+##          - 'DSR_c2.5'
+##          - 'DSR_c0'
+##          - 'DSR_c0.1'
+##          - 'DSR_c99999999999'
+#      plot_config:
+#        title: 'LBF Ablation - Return: c'
+#        sort_legend_by_suffix_digits: True
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # w
+#          - 'DSR_w10000'
+##          - 'DSR_w4000'
+#          - 'DSR_w5000'
+##          - 'DSR_w2500'
+##          - 'DSR_w6000'
+##          - 'DSR_w3000'
+##          - 'DSR_w7500'
+##          - 'DSR_w10'
+##          - 'DSR_w100'
+#          - 'DSR_w1000'
+#          - 'DSR_w99999999999'
+#      plot_config:
+#        title: 'LBF Ablation - Return: w'
+#        sort_legend_by_suffix_digits: True
+#
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # sight list
+#          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+#          - 'DSR_ucb(2,4,6,8,10)'
+##          - 'DSR_ucb(3,6,10)'
+#          - 'DSR_ucb(2,6,10)'
+#          - 'DSR_ucb(1,6,10)'
+##          - 'DSR_ucb(10)'
+#      plot_config:
+#        title: 'LBF Ablation - Return: sight list'
+#        sort_legend_by_suffix_digits: True
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # Add sight one-hot
+#          - 'DSR_addSightOneHot'
+#          - 'DSR_noSightOneHot'
+#      plot_config:
+#        title: 'LBF Ablation - Return: sight one-hot'
+#        sort_legend_by_suffix_digits: True
+#
+#
+#
+#    #　===================== Each Hyperparameter: Sight =====================
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # c
+#          - 'DSR_c0.5'
+#          - 'DSR_c5'
+#          - 'DSR_c1'
+##          - 'DSR_c20'
+#          - 'DSR_c2'
+##          - 'DSR_c10'
+##          - 'DSR_c2.5'
+##          - 'DSR_c0'
+##          - 'DSR_c0.1'
+##          - 'DSR_c99999999999'
+#      plot_config:
+#        title: 'LBF Ablation - Test Selected Sight: c'
+#        sort_legend_by_suffix_digits: True
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Test Selected Sight'
+#        y_high: 11
+#        y_low: 0
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # w
+#          - 'DSR_w10000'
+##          - 'DSR_w4000'
+#          - 'DSR_w5000'
+##          - 'DSR_w2500'
+##          - 'DSR_w6000'
+##          - 'DSR_w3000'
+##          - 'DSR_w7500'
+##          - 'DSR_w10'
+##          - 'DSR_w100'
+#          - 'DSR_w1000'
+#          - 'DSR_w99999999999'
+#      plot_config:
+#        title: 'LBF Ablation - Test Selected Sight: w'
+#        sort_legend_by_suffix_digits: True
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Test Selected Sight'
+#        y_high: 11
+#        y_low: 0
+#
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # sight list
+#          - 'DSR_ucb(1,2,3,4,5,6,7,8,9,10)'
+#          - 'DSR_ucb(2,4,6,8,10)'
+##          - 'DSR_ucb(3,6,10)'
+#          - 'DSR_ucb(2,6,10)'
+#          - 'DSR_ucb(1,6,10)'
+#          - 'DSR_ucb(10)'
+#      plot_config:
+#        title: 'LBF Ablation - Test Selected Sight: sight list'
+#        sort_legend_by_suffix_digits: True
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Test Selected Sight'
+#        y_high: 11
+#        y_low: 0
+#
+#
+#    - template_name: 'LBF_template - base'
+#      exp_vars:
+#        sight:
+#          # Add sight one-hot
+#          - 'DSR_addSightOneHot'
+#          - 'DSR_noSightOneHot'
+#      plot_config:
+#        title: 'LBF Ablation - Test Selected Sight: sight one-hot'
+#        sort_legend_by_suffix_digits: True
+#        tag: 'test_selected_sight_mean'
+#        ylabel: 'Test Selected Sight'
+#        y_high: 11
+#        y_low: 0
+
+
+

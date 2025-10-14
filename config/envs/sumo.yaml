@@ -1,0 +1,27 @@
+env: "gymma"
+
+env_args:
+  key: null
+  time_limit: 800
+  pretrained_wrapper: null
+  #
+  use_gui: False
+#  use_gui: True
+  waiting_time_memory: 5000
+  sumo_seed: 0
+  eval: False
+  num_seconds: 4000
+
+
+test_greedy: True
+test_nepisode: 5
+test_interval: 100000
+log_interval: 100000
+runner_log_interval: 10000
+learner_log_interval: 10000
+t_max: 10050000
+
+# Policy diff
+policy_diff_interval_1: 100000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_2: 1000000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_3: 10000000 # Compare the policy every {} gradient steps (if 0, not using policy diff)

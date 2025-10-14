@@ -1,0 +1,303 @@
+domain: LBF
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    add_sight_id_len: [ null ]
+    key: [ ]
+    pretrained_wrapper: [ null ]
+    time_limit: [ 50 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ null ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+
+hp_alg_group:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 200000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0003 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 50000 ]
+    policy_diff_n_batches: [ 32 ]
+    dormant_check_interval: [ 20000 ]
+    dormant_n_batches: [ 32 ]
+    policy_diff_interval_1: [ 2000 ]
+    policy_diff_interval_2: [ 20000 ]
+    policy_diff_interval_3: [ 200000 ]
+  ppo:
+    hidden_dim: [ 64 ]
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    test_interval: [ 50000 ]
+    policy_diff_n_batches: [ 32 ]
+    dormant_check_interval: [ 0 ]
+    dormant_n_batches: [ 32 ]
+    policy_diff_interval_1: [ 0 ]
+    policy_diff_interval_2: [ 0 ]
+    policy_diff_interval_3: [ 0 ]
+
+
+hp_alg:
+  iql:
+    min_n_tests: 201 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ null ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  vdn:
+    min_n_tests: 201 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ vdn ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  qmix:
+    min_n_tests: 201 # 1M
+    hyperparameter_group: value-based
+    custom_hyperparameters: { mixer: [ qmix ], mixing_embed_dim: [ 32 ], hypernet_layers: [ 2 ],hypernet_embed: [ 64 ] }
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  ippo:
+    min_n_tests: 401
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "ac_critic" ], target_update_interval_or_tau: [ 200 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+  mappo:
+    min_n_tests: 401
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+
+hp_map:
+
+hp_sight:
+
+hp_map_sight:
+  all-1p-5f:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    15s: { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                       preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                            preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] , add_sight_id_len: [ 7 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=2,w=5000" ] }
+
+  all-3p-5f:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    15s: { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                       preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                            preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] , add_sight_id_len: [ 7 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=2,w=5000" ] }
+
+  all-4p-5f:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    15s: { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                       preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                            preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ], add_sight_id_len: [ 7 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=2,w=5000" ] }
+
+  all-4p-5f-coop:
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    15s: { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                       preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                            preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6,15)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ], add_sight_id_len: [ 7 ] } ,
+                                                  preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s,15s),c=2,w=5000" ] }
+  6s-1p-5f:
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-1p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] } ,
+                                         preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-1p-5f-v1 ] , add_sight_id_len: [ 6 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=5000" ] }
+  6s-3p-5f:
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-3p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] } ,
+                                         preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-3p-5f-v1 ] , add_sight_id_len: [ 6 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=5000" ] }
+
+  6s-4p-5f:
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-4p-5f-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ] } ,
+                                         preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-v1 ], add_sight_id_len: [ 6 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=5000" ] }
+  6s-4p-5f-coop:
+    6s: { env_args: { key: [ lbforaging:Foraging-6s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    5s: { env_args: { key: [ lbforaging:Foraging-5s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    4s: { env_args: { key: [ lbforaging:Foraging-4s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    3s: { env_args: { key: [ lbforaging:Foraging-3s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    2s: { env_args: { key: [ lbforaging:Foraging-2s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    1s: { env_args: { key: [ lbforaging:Foraging-1s-15x15-4p-5f-coop-v1 ] } , preprocess_desc: [ null ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                    preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_before0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_c1_w10000_0913": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ] } ,
+                                         preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=1,w=10000" ] }
+    "ucb(1,2,3,4,5,6)_0916AfterHyperSelect": { env_args: { key: [ lbforaging:Foraging-15s-15x15-4p-5f-coop-v1 ], add_sight_id_len: [ 6 ] } ,
+                                               preprocess_desc: [ "lbf:15s->ucb(1s,2s,3s,4s,5s,6s),c=2,w=5000" ] }
+
+hp_other_variables: { }

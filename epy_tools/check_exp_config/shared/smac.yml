@@ -1,0 +1,213 @@
+domain: SMAC
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+#hp_all_skip
+#hp_all
+#hp_alg_group
+#hp_alg
+#hp_map
+#hp_sight
+#hp_map_sight
+#hp_other_variables
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args: # 3 map x 2 addInfo x 2 (w/ w/o concatenate_obs_as_state)
+    add_sight_id_len: [ null ]
+    concatenate_obs_as_state: [ False, True ]
+    continuing_episode: [ False ]
+    debug: [ False ]
+    difficulty: [ '7' ]
+    game_version: [ null ]
+    heuristic_ai: [ False ]
+    heuristic_rest: [ False ]
+    map_name: [ 'MMM', '2c_vs_64zg', '8m_vs_9m' ]
+    move_amount: [ 2 ]
+    no_cur_sight_info: [ False, True ]
+    obs_all_health: [ True ]
+    obs_instead_of_state: [ False ]
+    obs_last_action: [ False ]
+    obs_own_health: [ True ]
+    obs_pathing_grid: [ False ]
+    obs_terrain_height: [ False ]
+    obs_timestep_number: [ False ]
+    replay_dir: [ '' ]
+    replay_prefix: [ '' ]
+    reward_death_value: [ 10 ]
+    reward_defeat: [ 0 ]
+    reward_negative_scale: [ 0.5 ]
+    reward_only_positive: [ True ]
+    reward_scale: [ True ]
+    reward_scale_rate: [ 20 ]
+    reward_sparse: [ False ]
+    reward_win: [ 200 ]
+    seed: [ null ]
+    shoot_range: [ null ]
+    state_last_action: [ False ]
+    state_timestep_number: [ False ]
+    step_mul: [ 8 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'asc2' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ null ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_check_interval: [ 20000 ]
+  dormant_n_batches: [ 32 ]
+  policy_diff_interval_1: [ 2000 ]
+  policy_diff_interval_2: [ 20000 ]
+  policy_diff_interval_3: [ 200000 ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+
+
+hp_alg_group:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 50000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0005 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 50000 ]
+
+hp_alg:
+  qmix:
+    min_n_tests: 81  # 4M
+    hyperparameter_group: value-based
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+    custom_hyperparameters:
+      mixer: [ qmix ]
+      mixing_embed_dim: [ 32 ]
+      hypernet_layers: [ 2 ]
+      hypernet_embed: [ 64 ]
+
+hp_map:
+  2c_vs_64zg:
+    env_args:
+      map_name: [ 2c_vs_64zg ]
+  8m_vs_9m:
+    env_args:
+      map_name: [ 8m_vs_9m ]
+  25m:
+    env_args:
+      map_name: [ 25m ]
+  MMM:
+    env_args:
+      map_name: [ MMM ]
+  so_many_baneling:
+    env_args:
+      map_name: [ so_many_baneling ]
+
+hp_sight:
+  3s:
+    preprocess_desc: [ "asc2:3s->ucb(3s),c=1,w=20000" ]
+  5s:
+    preprocess_desc: [ "asc2:5s->ucb(5s),c=1,w=20000" ]
+  6s:
+    preprocess_desc: [ "asc2:6s->ucb(6s),c=1,w=20000" ]
+  7s:
+    preprocess_desc: [ "asc2:7s->ucb(7s),c=1,w=20000" ]
+  8s:
+    preprocess_desc: [ "asc2:8s->ucb(8s),c=1,w=20000" ]
+  9s:
+    preprocess_desc: [ "asc2:9s->ucb(9s),c=1,w=20000" ]
+  12s:
+    preprocess_desc: [ "asc2:12s->ucb(12s),c=1,w=20000" ]
+  15s:
+    preprocess_desc: [ "asc2:15s->ucb(15s),c=1,w=20000" ]
+  18s:
+    preprocess_desc: [ "asc2:18s->ucb(18s),c=1,w=20000" ]
+  21s:
+    preprocess_desc: [ "asc2:21s->ucb(21s),c=1,w=20000" ]
+  "ucb(6,7,8,9)_c1_w20000":
+    preprocess_desc: [ "asc2:9s->ucb(6s,7s,8s,9s),c=1,w=20000" ]
+  "ucb(6,9)_c1_w20000":
+    preprocess_desc: [ "asc2:9s->ucb(6s,9s),c=1,w=20000" ]
+  "ucb(3,6,9)_c1_w20000":
+    preprocess_desc: [ "asc2:9s->ucb(3s,6s,9s),c=1,w=20000" ]
+  "ucb(6,9,12)_c1_w20000":
+    preprocess_desc: [ "asc2:12s->ucb(6s,9s,12s),c=1,w=20000" ]
+  "ucb(6,9,12,15)_c1_w20000":
+    preprocess_desc: [ "asc2:15s->ucb(6s,9s,12s,15s),c=1,w=20000" ]
+  "ucb(6,9,12,15,18)_c1_w20000":
+    preprocess_desc: [ "asc2:18s->ucb(6s,9s,12s,15s,18s),c=1,w=20000" ]
+  "ucb(6,9)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:9s->ucb(6s,9s),c=1,w=20000,div=20" ]
+  "ucb(3,6,9)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:9s->ucb(3s,6s,9s),c=1,w=20000,div=20" ]
+  "ucb(6,7,8,9)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:9s->ucb(6s,7s,8s,9s),c=1,w=20000,div=20" ]
+  "ucb(6,9,12)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:12s->ucb(6s,9s,12s),c=1,w=20000,div=20" ]
+  "ucb(6,9,12,15)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:15s->ucb(6s,9s,12s,15s),c=1,w=20000,div=20" ]
+  "ucb(6,9,12,15,18)_c1_w20000_div20":
+    preprocess_desc: [ "asc2:18s->ucb(6s,9s,12s,15s,18s),c=1,w=20000,div=20" ]
+
+hp_map_sight:
+
+hp_other_variables:
+

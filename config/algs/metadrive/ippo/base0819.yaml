@@ -1,0 +1,37 @@
+# --- IPPO specific parameters ---
+
+action_selector: "soft_policies"
+mask_before_softmax: False
+
+runner: "parallel"
+
+buffer_size: 10
+batch_size_run: 10
+batch_size: 10
+
+# update the target network every {} training steps
+target_update_interval_or_tau: 1
+
+
+lr: 0.0003
+
+obs_agent_id: False
+obs_last_action: False
+obs_individual_obs: False
+
+agent_output_type: "pi_logits"
+learner: "ppo_learner"
+entropy_coef: 1.0
+standardise_returns: False
+standardise_rewards: False
+#use_rnn: True
+q_nstep: 20
+critic_type: "ac_critic"
+epochs: 10
+eps_clip: 0.2
+name: "ippo"
+
+t_max: 100050000
+
+use_rnn: False
+hidden_dim: 256

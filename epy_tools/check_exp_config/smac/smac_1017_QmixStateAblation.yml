@@ -1,0 +1,380 @@
+domain: SMAC
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+  # New functions (some runs not using fas and they are run before implementing fas)
+  - use_fas
+  - fas_lambda
+  - fas_dynamic
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args: # 3 map x 2 addInfo x 2 (w/ w/o concatenate_obs_as_state)
+    # noinspection YAMLIncompatibleTypes
+    add_sight_id_len: [ null, 3, 4, 5, 6, 7 ]
+    concatenate_obs_as_state: [ False, True ]
+    continuing_episode: [ False ]
+    debug: [ False ]
+    difficulty: [ '7' ]
+    game_version: [ null ]
+    heuristic_ai: [ False ]
+    heuristic_rest: [ False ]
+    map_name: [ 'MMM', '2c_vs_64zg', '8m_vs_9m' ]
+    move_amount: [ 2 ]
+    no_cur_sight_info: [ False, True ]
+    obs_all_health: [ True ]
+    obs_instead_of_state: [ True ]
+    obs_last_action: [ False ]
+    obs_own_health: [ True ]
+    obs_pathing_grid: [ False ]
+    obs_terrain_height: [ False ]
+    obs_timestep_number: [ False ]
+    replay_dir: [ '' ]
+    replay_prefix: [ '' ]
+    reward_death_value: [ 10 ]
+    reward_defeat: [ 0 ]
+    reward_negative_scale: [ 0.5 ]
+    reward_only_positive: [ True ]
+    reward_scale: [ True ]
+    reward_scale_rate: [ 20 ]
+    reward_sparse: [ False ]
+    reward_win: [ 200 ]
+    seed: [ null ]
+    shoot_range: [ null ]
+    state_last_action: [ False ]
+    state_timestep_number: [ False ]
+    step_mul: [ 8 ]
+    dsr_not_influence_obs: [ True ]
+    dsr_not_influence_concat_state: [ True ]
+    default_sight_range: [ 999 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'asc2' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ "asc2:999s->ucb(999s),c=2,w=5000" ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  policy_diff_n_batches: [ 32 ]
+  dormant_n_batches: [ 32 ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+  dormant_check_interval: [ 0 ]
+  policy_diff_interval_1: [ 0 ]
+  policy_diff_interval_2: [ 0 ]
+  policy_diff_interval_3: [ 0 ]
+
+
+hp_alg_group:
+  value-based:
+    action_selector: [ "epsilon_greedy" ]
+    epsilon_start: [ 1.0 ]
+    epsilon_finish: [ 0.05 ]
+    epsilon_anneal_time: [ 50000 ]
+    evaluation_epsilon: [ 0.05 ]
+    runner: [ "episode" ]
+    buffer_size: [ 5000 ]
+    target_update_interval_or_tau: [ 200 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "q" ]
+    learner: [ "q_learner" ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ True ]
+    double_q: [ True ]
+    use_rnn: [ True ]
+    lr: [ 0.0005 ]
+    hidden_dim: [ 128 ]
+    batch_size_run: [ 1 ]
+    test_interval: [ 100000 ]
+    use_fas: [ False ]
+    fas_lambda: [ 6 ]
+    fas_dynamic: [ False ]
+  ppo:
+    hidden_dim: [ 64 ]
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0005 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 10 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    test_interval: [ 100000 ]
+
+hp_alg:
+  qmix:
+    min_n_tests: 21  # 4M: 10w * (40 + 1) = 4M
+    hyperparameter_group: value-based
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      # New functions (some runs not using fas and they are run before implementing fas)
+      - use_fas
+      - fas_lambda
+      - fas_dynamic
+    custom_hyperparameters:
+      mixer: [ qmix ]
+      mixing_embed_dim: [ 32 ]
+      hypernet_layers: [ 2 ]
+      hypernet_embed: [ 64 ]
+      use_fas: [ False ]
+      fas_lambda: [ -1 ]
+      fas_dynamic: [ False ]
+  mappo:
+    min_n_tests: 51  # 4M: 10w * (40 + 1) = 4M
+    hyperparameter_group: ppo
+    not_having_ok_hyperparameters:
+      - force_render
+      - train_next_visibility # 預設是不使用，所以沒有specify也不影響
+      - reset_buffer_after_switch_visibility # 預設是不使用，所以沒有specify也不影響
+      # New functions (some runs not using fas and they are run before implementing fas)
+      - use_fas
+      - fas_lambda
+      - fas_dynamic
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+
+hp_map:
+  8m_vs_9m:
+    env_args:
+      map_name: [ 8m_vs_9m ]
+  10m_vs_11m:
+    env_args:
+      map_name: [ 10m_vs_11m ]
+  3s5z:
+    env_args:
+      map_name: [ 3s5z ]
+  MMM2:
+    env_args:
+      map_name: [ MMM2 ]
+  7sz:
+    env_args:
+      map_name: [ 7sz ]
+  3s_vs_5z:
+    env_args:
+      map_name: [ 3s_vs_5z ]
+  1c3s8z_vs_1c3s9z:
+    env_args:
+      map_name: [ 1c3s8z_vs_1c3s9z ]
+  5m_vs_6m:
+    env_args:
+      map_name: [ 5m_vs_6m ]
+
+hp_sight:
+  StateLeaveObsNumber1:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 1 ]
+  StateLeaveObsNumber2:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 2 ]
+  StateLeaveObsNumber3:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 3 ]
+  StateLeaveObsNumber4:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 4 ]
+  StateLeaveObsNumber5:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 5 ]
+  StateLeaveObsNumber6:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 6 ]
+  StateLeaveObsNumber7:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 7 ]
+  StateLeaveObsNumber8:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 8 ]
+  StateLeaveObsNumber9:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 9 ]
+  StateLeaveObsNumber10:
+    env_args:
+      when_obs_instead_of_state_leave_how_many_ag_obs: [ 10 ]
+
+hp_other_variables: { }
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+
+    - template_name: 'SMAC_plot_template: Each Map'
+      exp_vars:
+        map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+        alg: [ 'qmix' ]
+        sight: [ ]
+      skip_var_combinations: []
+#        # For DSR, it cannot have "MaskNone"
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+#          sight_method: [ "ucb(3,6,9,12,15,18,21)_c2_w5000_div20", "ucb(3,6,9)_c2_w5000_div20", "ucb(3,6,9,12)_c2_w5000_div20", "ucb(3,6,9,12,15)_c2_w5000_div20", "ucb(3,6,9,12,15,18)_c2_w5000_div20" ]
+#        # For pure, they can only have "MaskNone"
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+#          sight_method: [ "pure" ]
+#        # For an DSR, the max in the sight list of the UCB must be its sight.
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 15s, 18s ]
+#          sight_method: [ "ucb(3,6,9,12,15,18,21)_c2_w5000_div20" ]
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 18s, 21s ]
+#          sight_method: [ "ucb(3,6,9,12,15)_c2_w5000_div20" ]
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 12s, 15s, 18s, 21s ]
+#          sight_method: [ "ucb(3,6,9)_c2_w5000_div20" ]
+#        # For originalState, MaskBoth and MaskState is not allowed
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+#          sight_method: [ 'fas_dyn_lambda8', 'fas_dyn_lambda6', 'fas_lambda6', "ucb(3,6,9,12,15,18,21)_c2_w5000_div20", "ucb(3,6,9)_c2_w5000_div20", "ucb(3,6,9,12)_c2_w5000_div20", "ucb(3,6,9,12,15)_c2_w5000_div20", "ucb(3,6,9,12,15,18)_c2_w5000_div20", "ucb(3,6,9,12,15,18,21)_c2_w5000_div20" ]
+#        # For concatObsAsState, MaskObs is not going to be shown
+#        - alg: [ 'qmix' ]
+#          map: [ '8m_vs_9m', '3s5z', 'MMM2', '7sz', '3s_vs_5z', '1c3s8z_vs_1c3s9z', '5m_vs_6m' ]
+#          sight: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+#          sight_method: [ 'fas_dyn_lambda8', 'fas_dyn_lambda6', 'fas_lambda6', "ucb(3,6,9,12,15,18,21)_c2_w5000_div20", "ucb(3,6,9)_c2_w5000_div20", "ucb(3,6,9,12)_c2_w5000_div20", "ucb(3,6,9,12,15)_c2_w5000_div20", "ucb(3,6,9,12,15,18)_c2_w5000_div20", "ucb(3,6,9,12,15,18,21)_c2_w5000_div20" ]
+      plot_config:
+        title: 'SMAC - template'
+        save_path: 'smac/1013_FORMAL_STATE_ABLATION/'
+        tag: test_battle_won_mean
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Test Win Rate'
+        base_width: 6
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: True
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: map
+        n_tag_data: 21
+        change_ucb_name_to_dsr: True
+        change_pure_sight_name_to_no_dsr: True
+        show_subtitle: False
+        row_var_order: [ originalState, concatObsAsState ]
+        col_var_order: [ 9s, 15s, 21s ]
+  plots:
+    # ================= DSR vs Pure @ State x MaskSettings =================
+
+    # Map: 8m_vs_9m
+    - template_name: 'SMAC_plot_template: Each Map'
+      exp_vars:
+        map: [ '8m_vs_9m' ]
+        alg: [ 'qmix' ]
+        sight:
+          - StateLeaveObsNumber1
+          - StateLeaveObsNumber2
+          - StateLeaveObsNumber3
+          - StateLeaveObsNumber4
+          - StateLeaveObsNumber5
+          - StateLeaveObsNumber6
+          - StateLeaveObsNumber7
+          - StateLeaveObsNumber8
+      plot_config:
+        title: 'State Ablation (8m_vs_9m) noSightID'
+        no_show_row_names: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'StateLeaveObsNumber1' ], color: '#FF4500' }
+          - { keywords: [ 'StateLeaveObsNumber2' ], color: '#FFA500' }
+          - { keywords: [ 'StateLeaveObsNumber3' ], color: '#FFD700' }
+          - { keywords: [ 'StateLeaveObsNumber4' ], color: '#32CD32' }
+          - { keywords: [ 'StateLeaveObsNumber5' ], color: '#1E90FF' }
+          - { keywords: [ 'StateLeaveObsNumber6' ], color: '#4B0082' }
+          - { keywords: [ 'StateLeaveObsNumber7' ], color: '#9400D3' }
+          - { keywords: [ 'StateLeaveObsNumber8' ], color: '#FF69B4' }
+
+    # Map: 10m_vs_11m
+    - template_name: 'SMAC_plot_template: Each Map'
+      exp_vars:
+        map: [ '10m_vs_11m' ]
+        alg: [ 'qmix' ]
+        sight:
+          - StateLeaveObsNumber1
+          - StateLeaveObsNumber2
+          - StateLeaveObsNumber3
+          - StateLeaveObsNumber4
+          - StateLeaveObsNumber5
+          - StateLeaveObsNumber6
+          - StateLeaveObsNumber7
+          - StateLeaveObsNumber8
+#          - StateLeaveObsNumber9
+#          - StateLeaveObsNumber10
+      plot_config:
+        title: 'State Ablation (10m_vs_11m) noSightID'
+        no_show_row_names: True
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'StateLeaveObsNumber1' ], color: '#FF4500' }
+          - { keywords: [ 'StateLeaveObsNumber2' ], color: '#FFA500' }
+          - { keywords: [ 'StateLeaveObsNumber3' ], color: '#FFD700' }
+          - { keywords: [ 'StateLeaveObsNumber4' ], color: '#32CD32' }
+          - { keywords: [ 'StateLeaveObsNumber5' ], color: '#1E90FF' }
+          - { keywords: [ 'StateLeaveObsNumber6' ], color: '#4B0082' }
+          - { keywords: [ 'StateLeaveObsNumber7' ], color: '#9400D3' }
+          - { keywords: [ 'StateLeaveObsNumber8' ], color: '#FF69B4' }

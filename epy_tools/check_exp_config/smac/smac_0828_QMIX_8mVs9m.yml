@@ -1,0 +1,299 @@
+parent: epy_tools/check_exp_config/shared/smac.yml
+
+hp_all:
+  dormant_check_interval: [ 0 ]
+  policy_diff_interval_1: [ 0 ]
+  policy_diff_interval_2: [ 0 ]
+  policy_diff_interval_3: [ 0 ]
+
+
+hp_other_variables:
+  state:
+    concatenatedObsAsState:
+      env_args:
+        concatenate_obs_as_state: [ True ]
+    originalState:
+      env_args:
+        concatenate_obs_as_state: [ False ]
+  rs:
+    rs1:
+      env_args:
+        reward_scale_rate: [ 1 ]
+    rs20:
+      env_args:
+        reward_scale_rate: [ 20 ]
+  sight_info:
+    noCurSightInfo:
+      env_args:
+        no_cur_sight_info: [ True ]
+    curSightInfo:
+      env_args:
+        no_cur_sight_info: [ False ]
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'SMAC_plot_template - sight_info'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '8m_vs_9m' ]
+        sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,9)_c1_w20000', 'ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000', 'ucb(6,9,12,15,18)_c1_w20000' ]
+        state: [ concatenatedObsAsState, originalState ]
+        rs: [ rs1, rs20 ]
+        sight_info: [ noCurSightInfo, curSightInfo ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'template_SMAC_w5000_Original9s_WinRate.png'
+        tag: battle_won_mean
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Win Rate'
+        base_width: 8
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 3s, 6s, 9s, 12s, 15s, 18s, 21s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: state
+        custom_ax_col_var: sight
+        row_var_order: [ originalState, concatenatedObsAsState ]
+        col_var_order: [ 'ucb(6,9)_c1_w20000', 'ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000', 'ucb(6,9,12,15,18)_c1_w20000' ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'noCurSightInfo' ], color: green }
+          - { keywords: [ 'curSightInfo' ], color: red }
+
+    - template_name: 'SMAC_plot_template - sight'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '8m_vs_9m' ]
+        sight: [ ]
+        state: [ concatenatedObsAsState, originalState ]
+        rs: [ rs1, rs20 ]
+        sight_info: [ curSightInfo, noCurSightInfo ]
+      skip_var_combinations:
+        - alg: [ 'qmix' ]
+          map: [ '8m_vs_9m' ]
+          sight: [ 6s, 7s, 8s, 9s, 12s, 15s, 18s ]
+          state: [ concatenatedObsAsState, originalState ]
+          rs: [ rs1, rs20 ]
+          sight_info: [ curSightInfo ]
+        - alg: [ 'qmix' ]
+          map: [ '8m_vs_9m' ]
+          sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,9)_c1_w20000', 'ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000', 'ucb(6,9,12,15,18)_c1_w20000' ]
+          state: [ concatenatedObsAsState, originalState ]
+          rs: [ rs1, rs20 ]
+          sight_info: [ noCurSightInfo ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'try/0828_QMIX/hyperparameters/sights/'
+        tag: battle_won_mean
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Win Rate'
+        base_width: 8
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 6s, 9s, 12s, 15s, 18s, 21s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: state
+        custom_ax_col_var: rs
+        row_var_order: [ originalState, concatenatedObsAsState ]
+        col_var_order: [ rs1, rs20 ]
+        list_of_assigned_styles_and_keywords:
+          - { keywords: [ 'ucb' ], color: red }
+
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars:
+        alg: [ 'qmix' ]
+        map: [ '8m_vs_9m' ]
+        sight: [ ]
+        state: [ concatenatedObsAsState, originalState ]
+        rs: [ rs1, rs20 ]
+        sight_info: [ curSightInfo, noCurSightInfo ]
+      skip_var_combinations:
+        - alg: [ 'qmix' ]
+          map: [ '8m_vs_9m' ]
+          sight: [ 6s, 7s, 8s, 9s, 12s, 15s, 18s ]
+          state: [ concatenatedObsAsState, originalState ]
+          rs: [ rs1, rs20 ]
+          sight_info: [ curSightInfo ]
+        - alg: [ 'qmix' ]
+          map: [ '8m_vs_9m' ]
+          sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,9)_c1_w20000', 'ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000', 'ucb(6,9,12,15,18)_c1_w20000' ]
+          state: [ concatenatedObsAsState, originalState ]
+          rs: [ rs1, rs20 ]
+          sight_info: [ noCurSightInfo ]
+        # Prevent: div20 and rs1 at the same time
+        - sight:
+            - 'ucb(3,6,9)_c1_w20000_div20'
+            - 'ucb(6,7,8,9)_c1_w20000_div20'
+            - 'ucb(6,9)_c1_w20000_div20'
+            - 'ucb(6,9,12)_c1_w20000_div20'
+            - 'ucb(6,9,12,15)_c1_w20000_div20'
+            - 'ucb(6,9,12,15,18)_c1_w20000_div20'
+          state: [ concatenatedObsAsState, originalState ]
+          map: [ 8m_vs_9m ]
+          alg: [ qmix ]
+          sight_info: [ curSightInfo, noCurSightInfo ]
+          rs: [ rs1 ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'try/0828_QMIX/hyperparameters/sights/'
+        tag: battle_won_mean
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 1.02
+        ylabel: 'Win Rate'
+        base_width: 8
+        base_height: 6
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 6s, 9s, 12s, 15s, 18s, 21s ]
+        #
+        label_without_overall_performance: True
+        label_without_len_and_runs: True
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: state
+        custom_ax_col_var: rs
+        row_var_order: [ originalState, concatenatedObsAsState ]
+        col_var_order: [ rs1, rs20 ]
+        list_of_assigned_styles_and_keywords:
+        - { keywords: [ 'ucb' ], color: red }
+        - { keywords: [ 'ucb', 'div20' ], color: 'mediumseagreen' }
+        - { keywords: [ 'ucb', 'noCurSightInfo' ], linestyle: 'dotted' }
+
+  plots:
+
+    #    # =========================== CurSightInfo 比較 ===========================
+    #    - template_name: 'SMAC_plot_template - sight_info'
+    #      exp_vars: { rs: [ rs1 ] }
+    #      plot_config: { save_path: 'try/0828_QMIX/hyperparameters/curSightInfo/rs1.png' }
+    #    - template_name: 'SMAC_plot_template - sight_info'
+    #      exp_vars: { rs: [ rs20 ] }
+    #      plot_config: { save_path: 'try/0828_QMIX/hyperparameters/curSightInfo/rs20.png' }
+    #
+    # =========================== CurSightInfo 比較 ===========================
+
+    #    # ======================== Sight 比較 ========================
+    #    # Whole pure sights & a UCB
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 6s, 7s, 8s, 9s, 'ucb(6,7,8,9)_c1_w20000' ] }
+    #      plot_config: { title: 'All Pure Sights/ SMAC - Original 9s (6,7,8,9)', pure_sights: [ 6s,7s,8s,9s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 6s, 9s, 'ucb(6,9)_c1_w20000' ] }
+    #      plot_config: { title: 'All Pure Sights/ SMAC - Original 9s (6,9)', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 6s, 9s, 12s, 'ucb(6,9,12)_c1_w20000' ] }
+    #      plot_config: { title: 'All Pure Sights/ SMAC - Original 12s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 6s, 9s, 12s, 15s, 'ucb(6,9,12,15)_c1_w20000' ] }
+    #      plot_config: { title: 'All Pure Sights/ SMAC - Original 15s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 6s, 9s, 12s, 15s, 18s, 'ucb(6,9,12,15,18)_c1_w20000' ] }
+    #      plot_config: { title: 'All Pure Sights/ SMAC - Original 18s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    # Only original & UCB
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 9s, 'ucb(6,7,8,9)_c1_w20000' ] }
+    #      plot_config: { title: 'SMAC - Original 9s (6,7,8,9)', pure_sights: [ 6s,7s,8s,9s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 9s, 'ucb(6,9)_c1_w20000' ] }
+    #      plot_config: { title: 'SMAC - Original 9s (6,9)', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 12s, 'ucb(6,9,12)_c1_w20000' ] }
+    #      plot_config: { title: 'SMAC - Original 12s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 15s, 'ucb(6,9,12,15)_c1_w20000' ] }
+    #      plot_config: { title: 'SMAC - Original 15s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+    #    - template_name: 'SMAC_plot_template - sight'
+    #      exp_vars: { sight: [ 18s, 'ucb(6,9,12,15,18)_c1_w20000' ] }
+    #      plot_config: { title: 'SMAC - Original 18s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+
+#    #　===================== RS =====================
+#    - template_name: 'SMAC_plot_template - sight'
+#      exp_vars:
+#        sight: [ 9s, 12s, 15s, 18s, 'ucb(6,9)_c1_w20000','ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000' , 'ucb(6,9,12,15,18)_c1_w20000' ]
+#      plot_config:
+#        title: 'SMAC - Reward Scale (RS)'
+#        pure_sights: [ 6s, 9s, 12s, 15s, 18s ]
+#        custom_ax_row_var: state
+#        custom_ax_col_var: sight
+#        row_var_order: [ originalState, concatenatedObsAsState ]
+#        col_var_order: [ 9s, 12s, 15s, 18s, 'ucb(6,9)_c1_w20000','ucb(6,9,12)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000' , 'ucb(6,9,12,15,18)_c1_w20000' ]
+#        list_of_assigned_styles_and_keywords:
+#          - { keywords: [ 'rs1' ], color: green }
+#          - { keywords: [ 'rs20' ], color: blue }
+#          - { keywords: [ 'rs1', 'ucb' ], color: orange }
+#          - { keywords: [ 'rs20', 'ucb' ], color: red }
+#        save_path: 'try/0828_QMIX/hyperparameters/rs/'
+
+
+    #　===================== RS1 vs RS20 vs RS20-div20 : sight P.K. =====================
+#    # Only original & UCB
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 9s, 'ucb(6,7,8,9)_c1_w20000' , 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 9s (6,7,8,9)', pure_sights: [ 6s,7s,8s,9s ] }
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 9s, 'ucb(3,6,9)_c1_w20000', 'ucb(3,6,9)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 9s (3,6,9)', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 9s, 'ucb(6,9)_c1_w20000', 'ucb(6,9)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 9s (6,9)', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 12s, 'ucb(6,9,12)_c1_w20000', 'ucb(6,9,12)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 12s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 15s, 'ucb(6,9,12,15)_c1_w20000', 'ucb(6,9,12,15)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 15s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+#    - template_name: 'SMAC_plot_template - sight + div20'
+#      exp_vars: { sight: [ 18s, 'ucb(6,9,12,15,18)_c1_w20000', 'ucb(6,9,12,15,18)_c1_w20000_div20' ] }
+#      plot_config: { title: '/div20/SMAC - Original 18s', pure_sights: [ 6s, 9s, 12s, 15s, 18s ] }
+
+    # Sight Dynamic (6,9)
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 6s, 9s, 'ucb(6,9)_c1_w20000', 'ucb(6,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-9/SMAC - Original 9s (6,9)', pure_sights: [ 6s, 9s]}
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,9)_c1_w20000', 'ucb(6,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-9/SMAC - Original 9s (6,9) - 6s Dynamic', pure_sights: [ 6s, 9s ], tag: "adaptive_worker/6s_times", ylabel: '6s ratio in the window' }
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,9)_c1_w20000', 'ucb(6,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-9/SMAC - Original 9s (6,9) - 9s Dynamic', pure_sights: [ 6s, 9s ], tag: "adaptive_worker/9s_times", ylabel: '9s ratio in the window' }
+    # Sight Dynamic (6,7,8,9)
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 6s, 7s, 8s, 9s, 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-7-8-9/SMAC - Original 9s (6,7,8,9)', pure_sights: [ 6s, 7s, 8s, 9s]}
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-7-8-9/SMAC - Original 9s (6,7,8,9) - 6s Dynamic', pure_sights: [ 6s, 7s, 8s, 9s ], tag: "adaptive_worker/6s_times", ylabel: '6s ratio in the window' }
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-7-8-9/SMAC - Original 9s (6,7,8,9) - 7s Dynamic', pure_sights: [ 6s, 7s, 8s, 9s ], tag: "adaptive_worker/7s_times", ylabel: '7s ratio in the window' }
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-7-8-9/SMAC - Original 9s (6,7,8,9) - 8s Dynamic', pure_sights: [ 6s, 7s, 8s, 9s ], tag: "adaptive_worker/8s_times", ylabel: '8s ratio in the window' }
+    - template_name: 'SMAC_plot_template - sight + div20'
+      exp_vars: { sight: [ 'ucb(6,7,8,9)_c1_w20000', 'ucb(6,7,8,9)_c1_w20000_div20' ] }
+      plot_config: { title: '/div20/sight_dynamic_6-7-8-9/SMAC - Original 9s (6,7,8,9) - 9s Dynamic', pure_sights: [ 6s, 7s, 8s, 9s ], tag: "adaptive_worker/9s_times", ylabel: '9s ratio in the window' }
+

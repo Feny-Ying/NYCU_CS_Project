@@ -1,0 +1,316 @@
+parent: epy_tools/check_exp_config/shared/rware.yml
+
+hp_other_variables:
+  sight_id:
+    noCurSightId:
+      env_args:
+        add_sight_id_len: [ null ]
+    curSightId:
+      env_args:
+        add_sight_id_len: [ 3,  5 ]
+
+hp_map_sight:
+  tiny-2ag-3s:
+    "ucb(1,2,3)_c1_w5000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=5000,div=30" ]
+    "ucb(1,2,3)_c1_w10000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=10000,div=30" ]
+    "ucb(1,2,3)_c1_w20000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=20000,div=30" ]
+    "ucb(1,2,3)_c1.5_w5000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=5000,div=30" ]
+    "ucb(1,2,3)_c1.5_w10000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=10000,div=30" ]
+    "ucb(1,2,3)_c1.5_w20000_div30":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=20000,div=30" ]
+    "ucb(1,2,3)_c1_w5000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=5000" ]
+    "ucb(1,2,3)_c1_w10000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=10000" ]
+    "ucb(1,2,3)_c1_w20000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1,w=20000" ]
+    "ucb(1,2,3)_c1.5_w5000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=5000" ]
+    "ucb(1,2,3)_c1.5_w10000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=10000" ]
+    "ucb(1,2,3)_c1.5_w20000":
+      env_args: { key: [ robotic_warehouse:rware-tiny-2ag-3s-v1 ] }
+      preprocess_desc: [ "rware:3s->ucb(1s,2s,3s),c=1.5,w=20000" ]
+
+
+
+# --------------- Plotting Settings ---------------
+# 畫之前請先跑 `check_exp.py` 確認沒有錯誤再執行 `plot_exp.py`
+plot:
+  templates:
+    - template_name: 'RWARE_plot_template - base'
+      exp_vars:
+        alg: [ 'mappo' ]
+        map: [ tiny-2ag-3s ]
+        sight:
+          - "ucb(1,2,3)_c1_w5000_div30"
+          - "ucb(1,2,3)_c1_w10000_div30"
+          - "ucb(1,2,3)_c1_w20000_div30"
+          - "ucb(1,2,3)_c1.5_w5000_div30"
+          - "ucb(1,2,3)_c1.5_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w20000_div30"
+          - "ucb(1,2,3)_c1_w5000"
+          - "ucb(1,2,3)_c1_w10000"
+          - "ucb(1,2,3)_c1_w20000"
+          - "ucb(1,2,3)_c1.5_w5000"
+          - "ucb(1,2,3)_c1.5_w10000"
+          - "ucb(1,2,3)_c1.5_w20000"
+        sight_id: [ noCurSightId, curSightId ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'rware/0914_hyperSelect/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 30.02
+        ylabel: 'Test Return'
+        base_width: 12
+        base_height: 18
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+        #
+        label_without_overall_performance: False
+        label_without_len_and_runs: False
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: sight_id
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ noCurSightId, curSightId ]
+        list_of_assigned_styles_and_keywords:
+          # Var "c":
+          - { keywords: [ 'c1_' ], color: red }
+          - { keywords: [ 'c1.5' ], color: green }
+          - { keywords: [ 'c1_', 'div' ], color: orange }
+          - { keywords: [ 'c1.5', 'div' ], color: blue }
+          # Var "w":
+          - { keywords: [ 'w5000' ], marker: 'o' }
+          - { keywords: [ 'w10000' ], marker: 's' }
+          - { keywords: [ 'w20000' ], marker: '^' }
+        legend_loc: 'lower right'
+    - template_name: 'RWARE_plot_template - hyper'
+      exp_vars:
+        alg: [ 'mappo' ]
+        map: [ tiny-2ag-3s ]
+        sight:
+          - "ucb(1,2,3)_c1_w5000_div30"
+          - "ucb(1,2,3)_c1_w10000_div30"
+          - "ucb(1,2,3)_c1_w20000_div30"
+          - "ucb(1,2,3)_c1.5_w5000_div30"
+          - "ucb(1,2,3)_c1.5_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w20000_div30"
+          - "ucb(1,2,3)_c1_w5000"
+          - "ucb(1,2,3)_c1_w10000"
+          - "ucb(1,2,3)_c1_w20000"
+          - "ucb(1,2,3)_c1.5_w5000"
+          - "ucb(1,2,3)_c1.5_w10000"
+          - "ucb(1,2,3)_c1.5_w20000"
+        sight_id: [ noCurSightId, curSightId ]
+      plot_config:
+        title: 'SMAC - Whether to add current sight info?'
+        save_path: 'rware/0914_hyperSelect/'
+        tag: 'test_return_mean'
+        band: 'std' # 'ci' or 'stderr' or 'minmax'
+        plot_skip: 1
+        y_low: -0.02
+        y_high: 30.02
+        base_width: 10
+        base_height: 8
+        x_high: 60100000
+        x_low: -100000
+        ylabel: 'Test Return'
+        no_show: True
+        # 標註有哪些 pure sight (也可以不含)。這是用來輔助pure sight 深淺顏色的設定
+        pure_sights: [ 1s, 2s, 3s, 4s, 5s ]
+        #
+        label_without_overall_performance: False
+        label_without_len_and_runs: False
+        hide_subtitle_description: False
+        show_title: False
+        show_legend: True
+        show_text_on_line: False
+        custom_ax_row_var: alg
+        custom_ax_col_var: sight_id
+        row_var_order: [ 'iql', 'vdn', 'qmix', 'ippo', 'mappo' ]
+        col_var_order: [ noCurSightId, curSightId ]
+        list_of_assigned_styles_and_keywords:
+          # Var "c":
+          - { keywords: [ 'c1_' ], color: red }
+          - { keywords: [ 'c1.5' ], color: green }
+          - { keywords: [ 'c1_', 'div' ], color: orange }
+          - { keywords: [ 'c1.5', 'div' ], color: blue }
+          # Var "w":
+          - { keywords: [ 'w5000' ], marker: 'o' }
+          - { keywords: [ 'w10000' ], marker: 's' }
+          - { keywords: [ 'w20000' ], marker: '^' }
+        legend_loc: 'lower right'
+
+  plots:
+    #    #　===================== Return =====================
+    #    # Fix sight_id
+    #    - template_name: 'RWARE_plot_template - base'
+    #      plot_config:
+    #        title: 'RWARE - All UCB (6s)'
+    #        x_high: 60010000
+    #        x_low: -10000
+    #    #　===================== Return =====================
+    #    # Fix sight_id
+    #    - template_name: 'RWARE_plot_template - base'
+    #      plot_config:
+    #        title: 'RWARE - All UCB (6s) (20M only)'
+    #        x_high: 20010000
+    #        x_low: -10000
+#    #　===================== Comparing =====================
+#    - template_name: 'RWARE_plot_template - hyper'
+#      exp_vars:
+#        sight:
+#          - "ucb(1,2,3)_c1_w5000"
+#          - "ucb(1,2,3)_c1_w10000"
+#          - "ucb(1,2,3)_c1_w20000"
+#          #          - "ucb(1,2,3)_c1_w5000_div30"
+#          #          - "ucb(1,2,3)_c1_w10000_div30"
+#          #          - "ucb(1,2,3)_c1_w20000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w5000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w10000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w20000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w5000"
+#          #          - "ucb(1,2,3)_c1.5_w10000"
+#          #          - "ucb(1,2,3)_c1.5_w20000"
+#      plot_config:
+#        title: 'RWARE - Fix c=1, no div'
+#        list_of_assigned_styles_and_keywords:
+#          # # Var "c":
+#          # - { keywords: [ 'c1_' ], alpha: 1, linestyle: '-' }
+#          # - { keywords: [ 'c1_', 'div' ], alpha: 0, linestyle: '-' }
+#          # - { keywords: [ 'c1.5', 'div' ], alpha: 0, linestyle: '-' }
+#          # Var "w":
+#          - { keywords: [ 'w5000' ], color: 'C0' }
+#          - { keywords: [ 'w10000' ], color: 'C1' }
+#          - { keywords: [ 'w20000' ], color: 'C2' }
+    - template_name: 'RWARE_plot_template - hyper'
+      exp_vars:
+        sight:
+          - "ucb(1,2,3)_c1_w5000_div30"
+          - "ucb(1,2,3)_c1_w10000_div30"
+          - "ucb(1,2,3)_c1_w20000_div30"
+          - "ucb(1,2,3)_c1.5_w5000_div30"
+          - "ucb(1,2,3)_c1.5_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w20000_div30"
+      plot_config:
+        title: 'RWARE - Fix no div'
+        list_of_assigned_styles_and_keywords:
+          # # Var "c":
+          # - { keywords: [ 'c1_' ], alpha: 1, linestyle: '-' }
+          # - { keywords: [ 'c1_', 'div' ], alpha: 0, linestyle: '-' }
+          # - { keywords: [ 'c1.5', 'div' ], alpha: 0, linestyle: '-' }
+          # Var "w":
+          - { keywords: [ 'w5000' ], color: 'C0' }
+          - { keywords: [ 'w10000' ], color: 'C1' }
+          - { keywords: [ 'w20000' ], color: 'C2' }
+          - { keywords: [ 'c1_' ], linestyle: '-' }
+          - { keywords: [ 'c1.5' ], linestyle: '--' }
+#    #　===================== Comparing =====================
+#    - template_name: 'RWARE_plot_template - hyper'
+#      exp_vars:
+#        sight:
+#          # - "ucb(1,2,3)_c1_w5000"
+#          # - "ucb(1,2,3)_c1_w10000"
+#          # - "ucb(1,2,3)_c1_w20000"
+#          - "ucb(1,2,3)_c1_w5000_div30"
+#          - "ucb(1,2,3)_c1_w10000_div30"
+#          - "ucb(1,2,3)_c1_w20000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w5000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w10000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w20000_div30"
+#          #          - "ucb(1,2,3)_c1.5_w5000"
+#          #          - "ucb(1,2,3)_c1.5_w10000"
+#          #          - "ucb(1,2,3)_c1.5_w20000"
+#      plot_config:
+#        title: 'RWARE - Fix c=1, div=30'
+#        list_of_assigned_styles_and_keywords:
+#          # # Var "c":
+#          # - { keywords: [ 'c1_' ], alpha: 1, linestyle: '-' }
+#          # - { keywords: [ 'c1_', 'div' ], alpha: 0, linestyle: '-' }
+#          # - { keywords: [ 'c1.5', 'div' ], alpha: 0, linestyle: '-' }
+#          # Var "w":
+#          - { keywords: [ 'w5000' ], color: 'C0' }
+#          - { keywords: [ 'w10000' ], color: 'C1' }
+#          - { keywords: [ 'w20000' ], color: 'C2' }
+    #　===================== Comparing =====================
+    - template_name: 'RWARE_plot_template - hyper'
+      exp_vars:
+        sight:
+          # - "ucb(1,2,3)_c1_w5000"
+          # - "ucb(1,2,3)_c1_w10000"
+          # - "ucb(1,2,3)_c1_w20000"
+          - "ucb(1,2,3)_c1.5_w5000_div30"
+          - "ucb(1,2,3)_c1.5_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w20000_div30"
+          #          - "ucb(1,2,3)_c1.5_w5000_div30"
+          #          - "ucb(1,2,3)_c1.5_w10000_div30"
+          #          - "ucb(1,2,3)_c1.5_w20000_div30"
+          #          - "ucb(1,2,3)_c1.5_w5000"
+          #          - "ucb(1,2,3)_c1.5_w10000"
+          #          - "ucb(1,2,3)_c1.5_w20000"
+      plot_config:
+        title: 'RWARE - Fix c=1.5, div=30'
+        list_of_assigned_styles_and_keywords:
+          # # Var "c":
+          # - { keywords: [ 'c1_' ], alpha: 1, linestyle: '-' }
+          # - { keywords: [ 'c1_', 'div' ], alpha: 0, linestyle: '-' }
+          # - { keywords: [ 'c1.5', 'div' ], alpha: 0, linestyle: '-' }
+          # Var "w":
+          - { keywords: [ 'w5000' ], color: 'C0' }
+          - { keywords: [ 'w10000' ], color: 'C1' }
+          - { keywords: [ 'w20000' ], color: 'C2' }
+    #　===================== Comparing =====================
+    - template_name: 'RWARE_plot_template - hyper'
+      exp_vars:
+        sight:
+          - "ucb(1,2,3)_c1_w10000"
+          - "ucb(1,2,3)_c1_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w10000_div30"
+          - "ucb(1,2,3)_c1.5_w10000"
+      plot_config:
+        title: 'RWARE - Fix w=10000'
+        list_of_assigned_styles_and_keywords:
+           # Var "c":
+           - { keywords: [ 'c1_' ], color: 'C0' }
+           - { keywords: [ 'c1_', 'div' ], color: 'C1' }
+           - { keywords: [ 'c1.5'  ], color: 'C2' }
+           - { keywords: [ 'c1.5', 'div' ], color: 'C3' }
+    - template_name: 'RWARE_plot_template - hyper'
+      exp_vars:
+        sight:
+          - "ucb(1,2,3)_c1_w20000"
+          - "ucb(1,2,3)_c1_w20000_div30"
+          - "ucb(1,2,3)_c1.5_w20000_div30"
+          - "ucb(1,2,3)_c1.5_w20000"
+      plot_config:
+        title: 'RWARE - Fix w=20000'
+        list_of_assigned_styles_and_keywords:
+           # Var "c":
+           - { keywords: [ 'c1_' ], color: 'C0' }
+           - { keywords: [ 'c1_', 'div' ], color: 'C1' }
+           - { keywords: [ 'c1.5'  ], color: 'C2' }
+           - { keywords: [ 'c1.5', 'div' ], color: 'C3' }

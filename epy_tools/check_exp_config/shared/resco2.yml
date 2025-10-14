@@ -1,0 +1,131 @@
+domain: RESCO2
+parent: null
+seeds: [ 0, 1, 2, 3, 4 ]
+
+hp_all_skip: # 所有 alg 都跳過檢查的超參數。為 list of str。
+  - t_max
+  - save_path
+  - buffer_cpu_only
+  - seed # 這裡不用設，因為別處有特別檢查 seed
+  - local_results_path
+  - name
+  - reset_pos
+  - save_model
+  - save_model_interval
+  - save_replay
+  - use_cuda
+  - use_tensorboard
+  - render
+  - force_render
+
+hp_all:
+  add_value_last_step: [ True ]
+  agent: [ "rnn" ]
+  batch_size: [ 32 ]
+  reset_buffer_after_switch_visibility: [ False ]
+  force_render: [ False ]
+  checkpoint_path: [ "" ] # Train from scratch
+  env_args:
+    add_sight_id_len: [ null ]
+    key: [ ]
+    pretrained_wrapper: [ null ]
+    time_limit: [ 50 ]
+  evaluate: [ False ]
+  gamma: [ 0.99 ]
+  grad_norm_clip: [ 10.0 ]
+  env: [ 'gymma' ]
+  hypergroup: [ null ]
+  label: [ 'default_label' ]
+  runner_log_interval: [ 10000 ]
+  learner_log_interval: [ 10000 ]
+  load_step: [ 0 ]
+  log_interval: [ 50000 ]
+  mac: [ 'basic_mac' ]
+  n_distillation_grad_steps: [ 0 ]
+  n_grad_steps: [ 1 ]
+  n_offline_grad_steps: [ 0 ]
+  optim_alpha: [ 0.99 ]
+  optim_eps: [ !!float 1e-05 ]
+  preprocess_desc: [ null ]
+  redo_freq: [ 0 ]
+  redo_tau: [ 0 ]
+  repeat_id: [ 1 ]
+  reset_freq: [ 0 ]
+  test_greedy: [ True ]
+  test_nepisode: [ 100 ]
+  train_next_visibility: [ False ]
+  turn_off_train_preprocess: [ False ]
+  weight_decay: [ 0.0 ]
+  reset_after_switch_visibility: [ False ]
+  dormant_all_taus: [ [ 0, 0.0001, 0.001, 0.01 ] ]
+  offline_buffer_path: [ null ]
+  offline_buffer_grad_steps: [ 100 ]
+
+hp_alg_group:
+  ppo:
+    hidden_dim: [ 64 ]
+    action_selector: [ "soft_policies" ]
+    mask_before_softmax: [ True ]
+    runner: [ "parallel" ]
+    buffer_size: [ 10 ]
+    batch_size_run: [ 10 ]
+    batch_size: [ 10 ]
+    lr: [ 0.0003 ]
+    obs_agent_id: [ True ]
+    obs_last_action: [ False ]
+    obs_individual_obs: [ False ]
+    agent_output_type: [ "pi_logits" ]
+    learner: [ "ppo_learner" ]
+    entropy_coef: [ 0.001 ]
+    use_rnn: [ True ]
+    standardise_returns: [ False ]
+    standardise_rewards: [ False ]
+    q_nstep: [ 5 ]
+    epochs: [ 4 ]
+    eps_clip: [ 0.2 ]
+    test_interval: [ 50000 ]
+    policy_diff_n_batches: [ 32 ]
+    dormant_check_interval: [ 0 ]
+    dormant_n_batches: [ 32 ]
+    policy_diff_interval_1: [ 0 ]
+    policy_diff_interval_2: [ 0 ]
+    policy_diff_interval_3: [ 0 ]
+
+
+hp_alg:
+  mappo:
+    min_n_tests: 401
+    hyperparameter_group: ppo
+    custom_hyperparameters: { critic_type: [ "cv_critic" ], target_update_interval_or_tau: [ 0.01 ] }
+    not_having_ok_hyperparameters:
+      - offline_buffer_path
+      - offline_buffer_grad_steps
+
+hp_map:
+  ingolstadt7: { env_args: { key: [ 'resco_benchmark:ingolstadt7-v2' ] } }
+  ingolstadt7r0.7: { env_args: { key: [ 'resco_benchmark:ingolstadt7r0.7-v2' ] } }
+  ingolstadt7-scale2: { env_args: { key: [ 'resco_benchmark:ingolstadt7-scale2-v2' ] } }
+  arterial4x4: { env_args: { key: [ 'resco_benchmark:arterial4x4-v2' ] } }
+  cologne3: { env_args: { key: [ 'resco_benchmark:cologne3-v2' ] } }
+  ingolstadt21: { env_args: { key: [ 'resco_benchmark:ingolstadt21-v2' ] } }
+  cologne8: { env_args: { key: [ 'resco_benchmark:cologne8-v2' ] } }
+
+
+hp_sight:
+#  0s:
+#  1s:
+#  2s:
+#  10s:
+#  25s:
+#  50s:
+#  100s:
+#  200s:
+#  ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500:
+#  ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500:
+#  ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500:
+#  ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500:
+#  ucb(25,50,75,100,125,150,175,200)_c1_w1000_div1500_add1500:
+
+hp_map_sight:
+
+hp_other_variables: { }

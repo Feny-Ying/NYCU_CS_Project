@@ -1,0 +1,128 @@
+# --- Defaults ---
+
+# --- pymarl options ---
+runner: "episode" # Runs 1 env for an episode
+mac: "basic_mac" # Basic controller
+env: "sc2" # Environment name
+env_args: { } # Arguments for the environment
+batch_size_run: 1 # Number of environments to run in parallel
+test_nepisode: 20 # Number of episodes to test for
+test_interval: 2000 # Test after {} timesteps have passed
+test_greedy: True # Use greedy evaluation (if False, will set epsilon floor to 0
+log_interval: 2000 # Log summary of stats after every {} timesteps
+runner_log_interval: 2000 # Log runner stats (not test stats) every {} timesteps
+learner_log_interval: 2000 # Log training stats every {} timesteps
+t_max: 10000 # Stop running after this many timesteps
+use_cuda: True # Use gpu by default unless it isn't available
+buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
+
+# --- Logging options ---
+#use_tensorboard: False # Log results to tensorboard
+use_tensorboard: True # Log results to tensorboard
+#save_model: False # Save the models to disk
+save_model: True # Save the models to disk
+save_model_interval: 200000 # Save models after this many timesteps
+checkpoint_path: "" # Load a checkpoint from this path
+evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
+render: False # Render the environment when evaluating (only when evaluate == True)
+load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
+save_replay: False # Saving the replay of the model loaded from checkpoint_path
+local_results_path: "results" # Path for local results
+
+# --- RL hyperparameters ---
+gamma: 0.99
+batch_size: 32 # Number of episodes to train on
+buffer_size: 32 # Size of the replay buffer
+lr: 0.0005 # Learning rate for agents
+optim_alpha: 0.99 # RMSProp alpha
+optim_eps: 0.00001 # RMSProp epsilon
+grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
+add_value_last_step: True
+
+# --- Agent parameters ---
+agent: "rnn" # Default rnn agent
+hidden_dim: 64 # Size of hidden state for default rnn agent
+obs_agent_id: True # Include the agent's one_hot id in the observation
+obs_last_action: True # Include the agent's last action (one_hot) in the observation
+
+# --- Experiment running params ---
+repeat_id: 1
+label: "default_label"
+hypergroup: null
+
+
+
+# --- others
+
+weight_decay: 0
+reset_freq: 0 # Reset the environment every {} env steps
+reset_pos: 'fc2' # Reset position, can be multiple, e.g., "fc1 rnn fc2", "fc1 fc2", and so on (available: fc1, rnn, fc2)
+
+redo_freq: 0 # If it is <= 0, not using ReDo
+redo_tau: 0 # Dormant threshold for ReDo # TODO: don't use this, not implemented yet
+n_grad_steps: 1 # Number of gradient steps to take
+# Policy diff
+#policy_diff_interval_1: 2000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+#policy_diff_interval_2: 20000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+#policy_diff_interval_3: 200000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+##policy_diff_interval_1: 20000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+##policy_diff_interval_2: 200000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+##policy_diff_interval_3: 2000000 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_1: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_2: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_interval_3: 0 # Compare the policy every {} gradient steps (if 0, not using policy diff)
+policy_diff_n_batches: 32
+
+# After resetting
+n_offline_grad_steps: 0 # Number of gradient steps to take
+n_distillation_grad_steps: 0 # Number of gradient steps to take
+
+# E.g.,
+#           - "lbf:15s->2s@0,4s@1e6,6s@2e6,8s@3e6,15@4e6"
+#              指的是在 t_env 1e6 時，將視野從 2s 轉換成 4s, 並且在 3e6 時，將視野從 4s 轉換成 6s, 以此類推
+preprocess_desc: null
+
+# ``reset_after_switch_visibility`` 可填入 ``preprocess_desc`` 的描述字串，
+# 此功能使得即使不 preprocess_desc 也能在對應的時間點 reset model 來和有 preprocess_desc 的 model 進行比較
+reset_after_switch_visibility: False # Reset the environment after switching visibility (用的話，會蓋掉 reset_freq)
+
+# (bool) 若True，則 train時原本的一個 grad_step 多 train 一個 “下一個sight當obs_key”的batch。若已經在最後一個sight了，則不多練。
+train_next_visibility: False
+
+turn_off_train_preprocess: False # TODO: can be tried in the future
+
+# --- Dormant ---
+dormant_all_taus:
+  - 0
+  - 0.0001
+  - 0.001
+  - 0.01
+#dormant_check_interval: 20000
+dormant_check_interval: 0
+dormant_n_batches: 32
+
+# Custom
+save_path: "results" # Path for saving results
+
+# 是否換 visibility 後 reset replay buffer
+reset_buffer_after_switch_visibility: False
+
+# --------- MAB
+# None or a ucb description, such as "(1s,2s,3s,4s,5s),c=1.0,w=1000)" -> 1s, 2s, 3s, 4s, 5s are the arms,
+# c is the exploration constant, w is the window size
+#ucb_desc: null
+#env_args:
+#  add_sight_id_len: null
+
+
+# Render even in training stage
+force_render: False
+
+# Pure offline training from a given replay buffer (currently only support for value-based)
+offline_buffer_path: null
+offline_buffer_grad_steps: 100
+
+# Farthest Agent Selection
+# https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10623680
+fas_lambda: -1
+fas_dynamic: False # if True, fas_lambda will be the maximum lambda can be
