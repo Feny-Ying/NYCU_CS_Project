@@ -12,6 +12,7 @@ from gym.spaces import flatdim
 from gym.wrappers import TimeLimit as GymTimeLimit
 
 from smac.env import MultiAgentEnv, StarCraft2Env
+from multiagentenv import MultiAgentEnv
 
 
 def env_fn(env, **kwargs) -> MultiAgentEnv:
