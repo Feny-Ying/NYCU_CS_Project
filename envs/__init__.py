@@ -859,3 +859,4 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         return env_info
 
 REGISTRY["cityflow"] = partial(env_fn, env=CityFlowMultiAgentEnv)
+
