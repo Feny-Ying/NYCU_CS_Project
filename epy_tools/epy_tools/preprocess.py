@@ -8,7 +8,7 @@ import numpy as np
 from epy_tools.lbf_utils import lbf_preprocess
 from epy_tools.resco_utils import resco_preprocess
 from epy_tools.rware_utils import rware_preprocess
-
+from epy_tools.cityflow_utils import cityflow_topo_preprocess
 
 class NonStationaryUCB:
     def __init__(self, args, ucb_desc: str):
@@ -150,9 +150,9 @@ class PreprocessManager:
     available_auto_switch_visibility_str = ['equal', 'arithmetic']
 
     def __init__(self, n_agents: int, preprocess_desc: Optional[str], args,
-                 reset_after_switch_visibility: Union[bool, str] = False,
-                 reset_buffer_after_switch_visibility: Optional[bool] = None,
-                 add_sight_id_len: Optional[int] = None):
+                reset_after_switch_visibility: Union[bool, str] = False,
+                reset_buffer_after_switch_visibility: Optional[bool] = None,
+                add_sight_id_len: Optional[int] = None):
         """
 
         reset_manual_schedule: 讓 run.py 可以問說是否該 reset 了
@@ -179,6 +179,7 @@ class PreprocessManager:
         self.reset_buffer_after_switch_visibility = reset_buffer_after_switch_visibility
         self.adaptive_worker: Optional[NonStationaryUCB] = None
         self.add_sight_id_len = int(add_sight_id_len) if add_sight_id_len is not None else None
+        self.cityflow_adjacency = args.cityflow_adjacency  if args.cityflow_adjacency  is not None else None
 
         if self.use_preprocess:
             try:
@@ -310,7 +311,7 @@ class PreprocessManager:
             return None
         if self.adaptive_worker is not None:
             return None
-        elif self.preprocess_env_type in ['lbf', 'resco', 'rware', 'asc2', 'metadrive', 'resco2']:
+        elif self.preprocess_env_type in ['cityflow','lbf', 'resco', 'rware', 'asc2', 'metadrive', 'resco2']:
             start_sight = int(self.original_visibility_str[:-1])  # e.g., 15 in "15s"
             # 把 ``visibility_str`` 取 [:-1] 是因為要把 "s" 去掉
             switch_time_to_sight = {k: int(v[:-1]) for k, v in self.switch_time_to_visibility_str.items()}
@@ -394,7 +395,7 @@ class PreprocessManager:
         if self.adaptive_worker is not None:
             raise ValueError('Not support adaptive_worker')
         cur_visibility_str = self.preprocess_schedule_func(t_env)
-        if self.preprocess_env_type in ['lbf', 'rware', 'asc2', 'metadrive']:
+        if self.preprocess_env_type in ['cityflow','lbf', 'rware', 'asc2', 'metadrive']:
             # E.g., self.possible_visibility_str = ['2s', '4s', '6s', '8s', '15s']
             #       If cur_visibility_str = '4s', then return '6s'
             #       If cur_visibility_str = '15s', then return None
@@ -429,6 +430,12 @@ class PreprocessManager:
             processed = resco_preprocess(original_sight=int(self.original_visibility_str[:-1]),
                                          new_sight=int(visible_str[:-1]), original_obs=obs_to_preprocess,
                                          n_agents=self.n_agents, args=self.args)
+        elif self.preprocess_env_type == 'cityflow':
+            processed = cityflow_topo_preprocess(
+                                                    original_obs=obs_to_preprocess,
+                                                    adjacency=self.cityflow_adjacency,  # 或從 env_info 帶進來
+                                                    sight=int(visible_str[:-1])
+                                                )
         elif self.preprocess_env_type == 'asc2':
             return obs
         elif self.preprocess_env_type == 'metadrive':

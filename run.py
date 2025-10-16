@@ -128,22 +128,20 @@ def run_sequential(args, logger):
     args.n_agents = env_info["n_agents"]
     args.n_actions = env_info["n_actions"]
     args.state_shape = env_info["state_shape"]
-    args.cityflow_adjacency = env_info["cityflow_adjacency"]
 
     if 'add_sight_id_len' in args.env_args and args.env_args['add_sight_id_len'] is not None:
         sight_id_len_integer = int(args.env_args['add_sight_id_len'])
     else:
         sight_id_len_integer = None
-
+    print(f"{args}")
     # Setup preprocess function
     preprocess_manager = PreprocessManager(
-        preprocess_desc=args.preprocess_desc,
         n_agents=args.n_agents,
+        preprocess_desc=args.preprocess_desc,
         args=args,
         reset_after_switch_visibility=args.reset_after_switch_visibility,
         reset_buffer_after_switch_visibility=args.reset_buffer_after_switch_visibility,
-        add_sight_id_len=sight_id_len_integer,
-        cityflow_adjacency = args.cityflow_adjacency,
+        add_sight_id_len=sight_id_len_integer
     )
 
     print(f'env_info: {env_info}')
