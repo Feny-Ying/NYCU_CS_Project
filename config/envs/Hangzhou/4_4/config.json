@@ -4,9 +4,9 @@
 	"dir": "config/envs/Hangzhou/4_4/",
 	"roadnetFile": "roadnet_4_4.json", 
 	"flowFile": "anon_4_4_hangzhou_real.json", 
-	"rlTrafficLight": True,
-	"laneChange": False,
-	"saveReplay": True,
+	"rlTrafficLight": true,
+	"laneChange": false,
+	"saveReplay": true,
 	"roadnetLogFile": "replay_roadnet.json", 
 	"replayLogFile": "replay.txt"
 }

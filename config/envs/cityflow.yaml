@@ -1,11 +1,13 @@
 env: cityflow
 
 env_args:
-  cityflow_config: "config/envs/Hangzhou/4_4/config.json"
-  key: null
+  #cityflow_config: "config/envs/Hangzhou/4_4/config.json"
+  key: "config/envs/Hangzhou/4_4/config.json"
   time_limit: 100
   pretrained_wrapper: null
   add_sight_id_len: null
+  episode_limit: 3600
+  default_sight: 1
 
 test_greedy: True
 test_nepisode: 100

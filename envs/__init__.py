@@ -696,14 +696,16 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
     CityFlow Multi-Agent Environment
     Each traffic light = one agent
     """
-    def __init__(self, cityflow_config=None, episode_limit=3600, default_sight=1):
-        if cityflow_config is None:
-            cityflow_config = "/path/to/default_roadnet.json"
+    def __init__(self, key, time_limit, pretrained_wrapper, seed, add_sight_id_len: Optional[int], episode_limit=3600, default_sight=1, **kwargs):
+        if key is None:
+            key = "/path/to/default_roadnet.json"
         """
         cityflow_engine: CityFlow Engine instance
         episode_limit: 最大步數
         default_sight: 初始可視範圍 (鄰近路口層數)
         """
+        print(key)
+        cityflow_config = os.path.abspath(key)
         self.eng = Engine(cityflow_config, thread_num=1)
         self.traffic_light_ids = self.eng.get_traffic_light_ids()
         self.n_agents = len(self.traffic_light_ids)
