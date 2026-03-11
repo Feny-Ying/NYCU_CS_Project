@@ -1,8 +1,12 @@
 env: cityflow
 
 env_args:
-  #cityflow_config: "config/envs/Hangzhou/4_4/config.json"
-  key: "config/envs/Hangzhou/4_4/config.json"
+  # key: "config/envs/Hangzhou/4_4/config.json"
+  key: "config/envs/Jinan/3_4/config.json"
+  # key: "config/envs/NewYork/16_3/config.json"
+  # key: "config/envs/NewYork/28_7/config.json"
+  # key: "config/envs/SH1/config.json"
+  # key: "config/envs/SH2/config.json"
   time_limit: 100
   pretrained_wrapper: null
   add_sight_id_len: null
@@ -10,7 +14,7 @@ env_args:
   default_sight: 1
 
 test_greedy: True
-test_nepisode: 100
+test_nepisode: 2
 test_interval: 50000
 log_interval: 50000
 runner_log_interval: 10000

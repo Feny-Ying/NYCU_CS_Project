@@ -128,6 +128,7 @@ def run_sequential(args, logger):
     args.n_agents = env_info["n_agents"]
     args.n_actions = env_info["n_actions"]
     args.state_shape = env_info["state_shape"]
+    args.cityflow_adjacency = env_info["cityflow_adjacency"]
 
     if 'add_sight_id_len' in args.env_args and args.env_args['add_sight_id_len'] is not None:
         sight_id_len_integer = int(args.env_args['add_sight_id_len'])
@@ -373,7 +374,7 @@ def run_sequential(args, logger):
         if preprocess_manager.adaptive_worker is not None:
             if runner.t_env - learner.log_stats_t >= args.learner_log_interval:
                 if preprocess_manager.adaptive_worker.n_arms > 1:
-                    sight_to_exploitation = preprocess_manager.adaptive_worker.compute_each_sight_ucb_exploitation_value()
+                    sight_to_exploitation = preprocess_manager.adaptive_worker.compute_each_sight_ucb_exploitation_value(t_env = runner.t_env)
                     sight_to_exploration = preprocess_manager.adaptive_worker.compute_each_sight_ucb_exploration_value()
                     sight_to_ucb_values = {sight: sight_to_exploitation[sight] + sight_to_exploration[sight] for sight
                                            in
@@ -476,8 +477,8 @@ def run_sequential(args, logger):
             last_time = time.time()
 
             last_test_T = runner.t_env
-            for _ in range(n_test_runs):
-                runner.run(test_mode=True)
+            # for _ in range(n_test_runs):
+            runner.run(test_mode=True)
 
             if need_record_sight_history:
                 # Reset sight_history after test

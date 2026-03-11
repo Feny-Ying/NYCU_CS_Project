@@ -1,6 +1,6 @@
 import numpy as np
 from collections import deque
-from typing import Dict, List
+from typing import Dict, List, Union
 
 
 '''
@@ -65,24 +65,93 @@ def get_visible_intersections(agent_id: str, adjacency: Dict[str, List[str]], si
     return list(visible)
 
 
-def cityflow_topo_preprocess(original_obs: Dict[str, np.ndarray],
-                             adjacency: Dict[str, List[str]],
-                             sight: int) -> List[np.ndarray]:
-    """
-    將 CityFlow 路口觀察轉成 DSR 可用的 list of obs
-    original_obs: dict[intersection_id] -> np.ndarray (每個路口的觀察矩陣)
-    adjacency: dict[intersection_id] -> list of neighbor intersections
-    sight: BFS 層數
-    return: List[np.ndarray], 每個 agent 一個 obs
-    """
-    obs_list = []
-    for agent_id in original_obs.keys():
-        visible_ids = get_visible_intersections(agent_id, adjacency, sight)
-        # 合併可見路口的 obs
-        obs_agent = [original_obs[vid] for vid in visible_ids if vid in original_obs]
-        if len(obs_agent) == 0:
-            # 若視野內沒有任何路口，用空矩陣填充
-            obs_list.append(np.zeros_like(next(iter(original_obs.values()))))
-        else:
-            obs_list.append(np.vstack(obs_agent))
-    return obs_list
+from typing import Dict, List, Union
+import numpy as np
+
+# [phase, waiting]
+def cityflow_topo_preprocess(
+    original_obs,
+    use_dsr: bool,
+    sight: int,
+    per_node_dim: int = 3,
+    keep_hop: bool = False
+):
+    #print("original_obs:", original_obs)
+
+    if not use_dsr:
+        return original_obs
+    
+    if isinstance(original_obs, np.ndarray):
+        obs_list = list(original_obs)
+    else:
+        obs_list = original_obs
+
+    max_obs_len = obs_list[0].shape[0]
+    max_nodes = max_obs_len // per_node_dim
+
+    max_obs_len = max_obs_len // per_node_dim * 2  # 調整為 phase, waiting, vehicle_count, avg_speed
+    #print("max_obs_len:", max_obs_len)
+
+    processed = []
+
+    for obs in obs_list:
+        nodes = obs.reshape(max_nodes, per_node_dim)
+        #print("nodes shape:", nodes.shape)
+        #print("nodes:", nodes)
+        kept_nodes = []
+        for node in nodes:
+            hop = node[2]
+            if hop == 0 or hop <= sight:
+                kept_nodes.append(node[:2])  # phase, waiting, vehicle_count, avg_speed
+            else:
+                kept_nodes.append([0.0, 0.0])
+
+        flat = np.array(kept_nodes, dtype=obs.dtype).reshape(-1)
+
+        if flat.shape[0] < max_obs_len:
+            pad = np.zeros(max_obs_len - flat.shape[0], dtype=obs.dtype)
+            flat = np.concatenate([flat, pad])
+
+        processed.append(flat)
+    #print("processed:", processed)
+    return processed
+'''
+# [phase, waiting, hop]
+def cityflow_topo_preprocess(
+    original_obs,
+    use_dsr: bool,
+    sight: int,
+    per_node_dim: int = 3,
+    keep_hop: bool = True
+):
+    if not use_dsr:
+        return original_obs
+
+    if isinstance(original_obs, np.ndarray):
+        obs_list = list(original_obs)
+    else:
+        obs_list = original_obs
+
+    max_obs_len = obs_list[0].shape[0]
+    max_nodes = max_obs_len // per_node_dim
+
+    processed = []
+
+    for obs in obs_list:
+        nodes = obs.reshape(max_nodes, per_node_dim)
+
+        new_nodes = []
+        for node in nodes:
+            hop = node[2]
+            if hop == 0 or hop <= sight:
+                new_nodes.append(node)
+            else:
+                new_nodes.append([0.0, 0.0, 0.0])
+
+        flat = np.array(new_nodes, dtype=obs.dtype).reshape(-1)
+        processed.append(flat)
+
+    return processed
+'''
+
+

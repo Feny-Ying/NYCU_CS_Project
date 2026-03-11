@@ -3,10 +3,10 @@
 	"seed": 0,
 	"dir": "config/envs/Hangzhou/4_4/",
 	"roadnetFile": "roadnet_4_4.json", 
-	"flowFile": "anon_4_4_hangzhou_real.json", 
+	"flowFile": "anon_4_4_hangzhou_real_5816.json", 
 	"rlTrafficLight": true,
 	"laneChange": false,
-	"saveReplay": true,
+	"saveReplay": false,
 	"roadnetLogFile": "replay_roadnet.json", 
 	"replayLogFile": "replay.txt"
 }

@@ -13,6 +13,7 @@ from gym.wrappers import TimeLimit as GymTimeLimit
 
 from cityflow import Engine
 import json
+import math
 
 from smac.env import MultiAgentEnv, StarCraft2Env
 
@@ -692,6 +693,7 @@ REGISTRY["resco2"] = partial(env_fn, env=_Resco2GymmaWrapper)
 
 # -----------------------------------------------------------------------
 #cityflow的環境設置
+'''
 class CityFlowMultiAgentEnv(MultiAgentEnv):
     def __init__(self, key, time_limit, pretrained_wrapper, seed, add_sight_id_len: Optional[int], episode_limit=3600, default_sight=1, **kwargs):
         if key is None:
@@ -727,6 +729,8 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         self.cur_adaptive_sight = self.DEFAULT_SIGHT
         self.cityflow_adjacency = self._build_adjacency_matrix()
 
+        self.max_obs_len = self._compute_max_obs_len()
+
         # 自己維護的 phase 狀態 (初始假設 0)
         self.current_phase = {tl_id: 0 for tl_id in self.traffic_light_ids}
 
@@ -752,6 +756,15 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
                 adj[i, j] = 1
                 adj[j, i] = 1
         return adj
+    
+    def _compute_max_obs_len(self):
+        """計算所有 agent 最大的 obs 長度，用來 padding"""
+        max_len = 0
+        for i in range(len(self.traffic_light_ids)):
+            neighbors = self.get_neighbors_within_sight(i)
+            cur_len = 2 + len(neighbors) * 2  # 自己2 + 每個鄰居2
+            max_len = max(max_len, cur_len)
+        return max_len
 
     def get_neighbors_within_sight(self, agent_id, sight=None):
         if sight is None:
@@ -790,7 +803,8 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         state = self.get_state()
         reward = self.calculate_reward()
         terminated = (self.t >= self.episode_limit)
-        info = {}
+        info = {"throughput": self.eng.get_throughput(),
+                "delay": self.eng.get_delay()}
         return reward, terminated, info
 
     def get_obs_agent(self, agent_id):
@@ -800,7 +814,6 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         lane_waiting = self.eng.get_lane_waiting_vehicle_count()
         waiting_count = sum(lane_waiting.get(l, 0) for l in self.tl_to_lanes[tl_id])
 
-        # 自己紅綠燈相位 (用自己紀錄的)
         obs.append(float(self.current_phase[tl_id]))
         obs.append(float(waiting_count))
 
@@ -811,18 +824,31 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
             obs.append(float(self.current_phase[nb_tl]))
             obs.append(float(nb_wait))
 
+        # Padding
+        if len(obs) < self.max_obs_len:
+            obs += [0.0] * (self.max_obs_len - len(obs))
+
         return np.array(obs, dtype=np.float32)
 
     def get_obs(self):
+        """回傳所有 agent 的固定長度觀測"""
         return [self.get_obs_agent(i) for i in range(self.n_agents)]
 
+    def get_obs_size(self):
+        """提供給模型 input dim"""
+        return self.max_obs_len
+
     def get_state(self):
-        obs_all = self.get_obs()
-        return np.concatenate(obs_all, axis=0).astype(np.float32)
+        """拼接所有 agent 的觀測作為全域 state"""
+        return np.concatenate(self.get_obs(), axis=0).astype(np.float32)
+    
+    def get_state_size(self):
+        """Returns the total state dimension for CityFlow"""
+        return self.n_agents * self.max_obs_len
 
     def get_avail_agent_actions(self, agent_id):
         tl_id = self.traffic_light_ids[agent_id]
-        phase_count = 4  # 若你知道每個 intersection 有幾相，可改成自動讀
+        phase_count = 9  # 若你知道每個 intersection 有幾相，可改成自動讀
         return [1] * phase_count
 
     def get_avail_actions(self):
@@ -831,11 +857,6 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
     def get_total_actions(self):
         return len(self.get_avail_agent_actions(0))
 
-    def get_obs_size(self):
-        return len(self.get_obs_agent(0))
-
-    def get_state_size(self):
-        return self.get_obs_size() * self.n_agents
 
     def calculate_reward(self):
         lane_waiting = self.eng.get_lane_waiting_vehicle_count()
@@ -860,6 +881,11 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
     def save_replay(self):
         pass
 
+    def get_stats(self):
+        # 暫時不回傳任何東西
+        return {}
+    
+
     def get_env_info(self):
         return {
             "state_shape": self.get_state_size(),
@@ -867,7 +893,487 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
             "n_actions": self.get_total_actions(),
             "n_agents": self.n_agents,
             "episode_limit": self.episode_limit,
-            "cityflow_adjacency": self.cityflow_adjacency
+            "cityflow_adjacency": self.cityflow_adjacency,
+        }
+
+
+
+REGISTRY["cityflow"] = partial(env_fn, env=CityFlowMultiAgentEnv)
+'''
+class CityFlowMultiAgentEnv(MultiAgentEnv):
+    def __init__(
+        self, key, time_limit, pretrained_wrapper, seed,
+        add_sight_id_len: Optional[int],
+        episode_limit=3600,
+        default_sight=1,
+        max_sight=3,          # 新增：最大 sight
+        sight_mode='hop',  # 'grid' (n×n方格) 或 'cross' (十字) 或 'hop' (原始)
+        **kwargs
+    ):
+        # ---------- 原本初始化（略，未動） ----------
+        cityflow_config = os.path.abspath(key)
+        self.eng = Engine(cityflow_config, thread_num=1)
+
+        with open(cityflow_config) as f:
+            config_data = json.load(f)
+        roadnet_path = os.path.join(config_data["dir"], config_data["roadnetFile"])
+        with open(roadnet_path) as f:
+            self.roadnet = json.load(f)
+
+        self.road_lengths = self.load_road_lengths(roadnet_path)
+
+        self.traffic_light_ids = [
+            i["id"] for i in self.roadnet["intersections"]
+            if not i.get("virtual", False) and i.get("trafficLight", False)
+        ]
+
+        self.n_agents = len(self.traffic_light_ids)
+        self.episode_limit = episode_limit
+        self.t = 0
+
+        self.tl_to_lanes = self._build_tl_to_lanes()
+
+        # ---------- sight 設定 ----------
+        self.MAX_SIGHT = max_sight
+        self.cur_adaptive_sight = default_sight
+        self.sight_mode = sight_mode  # 'grid', 'cross', or 'hop'
+
+        # 提取網格座標（從 intersection_col_row 格式）
+        self.tl_grid_coords = self._extract_grid_coordinates()
+
+        self.cityflow_adjacency = self._build_adjacency_matrix()
+
+        # print(f"traffic lights ids = {self.traffic_light_ids}")
+        # print(self.tl_to_lanes)
+        # print(self.cityflow_adjacency)
+
+        # obs 長度永遠用 MAX_SIGHT 算
+        self.max_obs_len = self._compute_max_obs_len()
+
+        self.last_total_wait = 0.0
+
+        self.current_phase = {tl_id: 0 for tl_id in self.traffic_light_ids}
+
+    def _extract_grid_coordinates(self):
+        """
+        從 intersection_X_Y 格式的 ID 提取網格座標
+        例如: intersection_1_5 → (col=1, row=5)
+        
+        注意：只處理實體路口（已在 traffic_light_ids 中過濾掉 virtual 路口）
+        """
+        coords = {}
+        for i, tl_id in enumerate(self.traffic_light_ids):
+            try:
+                # 分割 ID: "intersection_1_5" → ["intersection", "1", "5"]
+                parts = tl_id.split('_')
+                if len(parts) >= 3:
+                    col = int(parts[1])  # X 座標（列）
+                    row = int(parts[2])  # Y 座標（行）
+                    coords[i] = (col, row)
+                else:
+                    raise ValueError(f"無法解析路口 ID: {tl_id}")
+            except (ValueError, IndexError) as e:
+                print(f"警告: 無法解析路口 ID {tl_id}, 錯誤: {e}")
+                # 如果解析失敗，使用索引作為座標
+                coords[i] = (i % 10, i // 10)
+        
+        # 打印路口座標資訊（除錯用）
+        if len(coords) > 0:
+            cols = [c for c, r in coords.values()]
+            rows = [r for c, r in coords.values()]
+            print(f"[INFO] 實體路口數量: {len(coords)}")
+            print(f"[INFO] 列範圍: {min(cols)} ~ {max(cols)}")
+            print(f"[INFO] 行範圍: {min(rows)} ~ {max(rows)}")
+        
+        return coords
+    
+    # def get_neighbors_within_sight(self, agent_id, sight):
+    #     """
+    #     回傳 List[(neighbor_id, hop)]
+    #     """
+    #     visited = set([agent_id])
+    #     frontier = [(agent_id, 0)]
+    #     neighbors = []
+
+    #     while frontier:
+    #         u, dist = frontier.pop(0)
+    #         if dist == sight:
+    #             continue
+
+    #         for v, conn in enumerate(self.cityflow_adjacency[u]):
+    #             if conn and v not in visited:
+    #                 visited.add(v)
+    #                 neighbors.append((v, dist + 1))
+    #                 frontier.append((v, dist + 1))
+
+    #     return neighbors
+    
+    def get_neighbors_within_sight(self, agent_id, sight):
+        """
+        根據 sight_mode 返回不同範圍的鄰居
+        Returns: List[(neighbor_id, distance)]
+        """
+        if self.sight_mode == 'grid':
+            return self._get_grid_neighbors(agent_id, sight)
+        elif self.sight_mode == 'cross':
+            return self._get_cross_neighbors(agent_id, sight)
+        else:  # 'hop'
+            return self._get_hop_neighbors(agent_id, sight)
+    
+    def _get_grid_neighbors(self, agent_id, sight):
+        """
+        n×n 方格視野（包含對角線）
+        sight=1 → 3×3 = 8個鄰居
+        sight=2 → 5×5 = 24個鄰居
+        
+        使用切比雪夫距離: max(|Δcol|, |Δrow|) <= sight
+        Returns: List[(neighbor_id, chebyshev_distance)]
+        """
+        my_col, my_row = self.tl_grid_coords[agent_id]
+        neighbors = []
+        
+        for nb_id, (nb_col, nb_row) in self.tl_grid_coords.items():
+            if nb_id == agent_id:
+                continue
+            
+            col_diff = abs(nb_col - my_col)
+            row_diff = abs(nb_row - my_row)
+            
+            # 切比雪夫距離（方格距離）
+            chebyshev_dist = max(col_diff, row_diff)
+            
+            if chebyshev_dist <= sight:
+                neighbors.append((nb_id, chebyshev_dist))
+        
+        neighbors.sort(key=lambda x: (x[1], x[0]))  # 先按距離排序，再按 ID
+
+        # print(agent_id)
+        # print(sight)
+        # print(f"current sight = {self.cur_adaptive_sight}")
+        # print(neighbors)
+
+        return neighbors
+    
+    def _get_cross_neighbors(self, agent_id, sight):
+        """
+        十字視野（只看上下左右，不包含對角線）
+        sight=1 → 4個鄰居（上下左右各1個）
+        sight=2 → 8個鄰居（上下左右各2個）
+        
+        只選擇 col 相同或 row 相同的鄰居
+        Returns: List[(neighbor_id, manhattan_distance)]
+        """
+        my_col, my_row = self.tl_grid_coords[agent_id]
+        neighbors = []
+        
+        for nb_id, (nb_col, nb_row) in self.tl_grid_coords.items():
+            if nb_id == agent_id:
+                continue
+            
+            # 只選擇同一行或同一列的鄰居
+            if nb_col == my_col or nb_row == my_row:
+                col_diff = abs(nb_col - my_col)
+                row_diff = abs(nb_row - my_row)
+                manhattan_dist = col_diff + row_diff
+                
+                if manhattan_dist <= sight:
+                    neighbors.append((nb_id, manhattan_dist))
+        
+        neighbors.sort(key=lambda x: (x[1], x[0]))
+
+        # print(agent_id)
+        # print(sight)
+        # print(f"current sight = {self.cur_adaptive_sight}")
+        # print(neighbors)
+
+        return neighbors
+    
+    def _get_hop_neighbors(self, agent_id, sight):
+        """
+        原始的 hop-based 鄰居搜尋（圖距離）
+        Returns: List[(neighbor_id, hop)]
+        """
+        visited = set([agent_id])
+        frontier = [(agent_id, 0)]
+        neighbors = []
+
+        while frontier:
+            u, dist = frontier.pop(0)
+            if dist == sight:
+                continue
+
+            for v, conn in enumerate(self.cityflow_adjacency[u]):
+                if conn and v not in visited:
+                    visited.add(v)
+                    neighbors.append((v, dist + 1))
+                    frontier.append((v, dist + 1))
+
+        # print(agent_id)
+        # print(sight)
+        # print(f"current sight = {self.cur_adaptive_sight}")
+        # print(neighbors)
+
+        return neighbors
+
+    def _build_tl_to_lanes(self):
+        tl_to_lanes = {tl: [] for tl in self.traffic_light_ids}
+        for road in self.roadnet["roads"]:
+            end_int = road["endIntersection"]
+            if end_int in tl_to_lanes:
+                for i in range(len(road["lanes"])):
+                    lane_id = f"{road['id']}_{i}"
+                    tl_to_lanes[end_int].append(lane_id)
+        return tl_to_lanes
+
+    def _build_adjacency_matrix(self):
+        n = self.n_agents
+        adj = np.zeros((n, n), dtype=np.int32)
+        id2idx = {tl: idx for idx, tl in enumerate(self.traffic_light_ids)}
+        for road in self.roadnet["roads"]:
+            s = road["startIntersection"]
+            e = road["endIntersection"]
+            if s in id2idx and e in id2idx:
+                i, j = id2idx[s], id2idx[e]
+                adj[i, j] = 1
+                adj[j, i] = 1
+        return adj
+    
+    def _compute_max_obs_len(self):
+        """用 MAX_SIGHT 計算 obs 最大長度 每個node3維"""
+        max_len = 0
+        for i in range(self.n_agents):
+            neighbors = self.get_neighbors_within_sight(i, sight=self.MAX_SIGHT)
+            cur_len = 3 + len(neighbors) * 3  # phase + wait + vehicle_count + avg_speed + hop
+            max_len = max(max_len, cur_len)
+        return max_len
+
+    def reset(self):
+        self.eng.reset()
+        self.t = 0
+        self.last_total_wait = 0.0
+        # reset phase states to 0
+        for tl in self.current_phase:
+            self.current_phase[tl] = 0
+        return self.get_obs(), self.get_state()
+
+    def step(self, actions: List[int]):
+        for i, action in enumerate(actions):
+            tl_id = self.traffic_light_ids[i]
+            self.eng.set_tl_phase(tl_id, action)
+            self.current_phase[tl_id] = action  # 更新自己的相位紀錄
+
+        # Switch or not
+        # for i, action in enumerate(actions):
+        #     tl_id = self.traffic_light_ids[i]
+        #     if action == 1:
+        #         self.eng.set_tl_phase(tl_id, (self.current_phase[tl_id] + 1) % 9)
+        #         self.current_phase[tl_id] = (self.current_phase[tl_id] + 1) % 9  # 更新自己的相位紀錄
+
+        # 一次執行15秒
+        for _ in range(15):
+            self.eng.next_step()
+        self.t += 1
+
+
+        obs = self.get_obs()
+        state = self.get_state()
+        
+        current_total_wait = self.calculate_reward()
+        #print(f'[ CityFlow ] Step {self.t}, Reward: {reward}')
+        reward = current_total_wait
+        # reward = current_total_wait - self.last_total_wait
+        self.last_total_wait = current_total_wait
+
+        #reward = self.calculate_weighted_reward()
+        #print(f'[ CityFlow ] Step {self.t}, Reward: {reward}')
+        terminated = (self.t >= self.episode_limit)
+        info = {"throughput": self.eng.get_throughput(),
+                "delay": self.eng.get_delay(),
+                "average_travel_time": self.eng.get_average_travel_time()}
+
+        return reward, terminated, info
+    
+    def get_avg_speed_of_intersection(self, tl_id):
+        speeds = []
+        for lane in self.tl_to_lanes[tl_id]:
+            for vid in self._lane_vehicles.get(lane, []):
+                if vid in self._vehicle_speeds:
+                    speeds.append(self._vehicle_speeds[vid])
+
+        if not speeds:
+            return 0.0
+        return float(np.mean(speeds))
+    
+    def get_vehicle_count_of_intersection(self, tl_id):
+        return sum(
+            self._lane_vehicle_cnt.get(l, 0)
+            for l in self.tl_to_lanes[tl_id]
+        )
+
+    def get_obs_agent(self, agent_id):
+        tl_id = self.traffic_light_ids[agent_id]
+        obs = []
+
+        #lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        waiting_count = sum(
+            self._lane_waiting.get(l, 0) for l in self.tl_to_lanes[tl_id]
+        )
+        #avg_speed = self.get_avg_speed_of_intersection(tl_id)
+        #vehicle_count = self.get_vehicle_count_of_intersection(tl_id)
+
+        # self (hop = 0)
+        obs.append(float(self.current_phase[tl_id]))
+        obs.append(float(waiting_count))
+        #obs.append(float(vehicle_count))
+        #obs.append(avg_speed)
+        obs.append(0.0)
+
+        neighbors = self.get_neighbors_within_sight(
+            agent_id, sight=self.MAX_SIGHT
+        )
+
+        for nb, hop in neighbors:
+            nb_tl = self.traffic_light_ids[nb]
+            nb_wait = sum(
+                self._lane_waiting.get(l, 0) for l in self.tl_to_lanes[nb_tl]
+            )
+            #nb_avg_speed = self.get_avg_speed_of_intersection(nb_tl)
+            #nb_vehicle_count = self.get_vehicle_count_of_intersection(nb_tl)
+
+            obs.append(float(self.current_phase[nb_tl]))
+            obs.append(float(nb_wait))
+            #obs.append(float(nb_vehicle_count))
+            #obs.append(nb_avg_speed)
+            obs.append(float(hop))  # hop 資訊
+
+        if len(obs) < self.max_obs_len:
+            obs += [0.0] * (self.max_obs_len - len(obs))
+
+        return np.array(obs, dtype=np.float32)
+    
+    def get_obs(self):
+        self._lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        #self._lane_vehicle_cnt = self.eng.get_lane_vehicle_count()
+        #self._lane_vehicles = self.eng.get_lane_vehicles()
+        #self._vehicle_speeds = self.eng.get_vehicle_speed()
+        return [self.get_obs_agent(i) for i in range(self.n_agents)]
+
+    def get_obs_size(self):
+        """提供給模型 input dim"""
+        return self.max_obs_len // 3 * 2  # 不包含 hop 資訊
+
+    def get_state(self):
+        """拼接所有 agent 的觀測作為全域 state"""
+        return np.concatenate(self.get_obs(), axis=0).astype(np.float32)
+    
+    def get_state_size(self):
+        """Returns the total state dimension for CityFlow"""
+        return self.n_agents * (self.max_obs_len // 3 * 2)  # 不包含 hop 資訊
+
+    def get_avail_agent_actions(self, agent_id):
+        tl_id = self.traffic_light_ids[agent_id]
+        phase_count = 9  # 若你知道每個 intersection 有幾相，可改成自動讀
+        return [1] * phase_count
+    
+        # # Switch or not
+        # action 0: keep
+        # action 1: switch
+        # return [1, 1]
+
+    def get_avail_actions(self):
+        return [self.get_avail_agent_actions(i) for i in range(self.n_agents)]
+
+    def get_total_actions(self):
+        return len(self.get_avail_agent_actions(0))
+
+    def load_road_lengths(self, config_file):
+        """從 roadnet JSON 讀取所有道路長度"""
+        with open(config_file, 'r') as f:
+            roadnet = json.load(f)
+        
+        road_lengths = {}
+        for road in roadnet['roads']:
+            road_id = road['id']
+            points = road['points']
+            
+            # 計算起點到終點的距離
+            x1, y1 = points[0]['x'], points[0]['y']
+            x2, y2 = points[-1]['x'], points[-1]['y']
+            length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            
+            road_lengths[road_id] = length if length > 0 else 1.0
+        
+        return road_lengths
+    
+    def calculate_reward(self):
+        lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        total_wait = 0
+
+        #print("=== Lane waiting debug ===")
+        for tl in self.traffic_light_ids:
+            #print(f"[TL {tl}]")
+            for l in self.tl_to_lanes[tl]:
+                w = lane_waiting.get(l, 0)
+                #print(f"  lane {l}: waiting = {w}")
+                total_wait += w
+
+        #print(f"TOTAL waiting = {total_wait}")
+        #print("==========================")
+
+        return -float(total_wait)
+    
+    def calculate_weighted_reward(self):
+        lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        total_wait = 0
+        for tl in self.traffic_light_ids:
+            for lane_id in self.tl_to_lanes[tl]:
+                waiting_count = lane_waiting.get(lane_id, 0)
+                
+                # 從 lane_id 提取 road_id
+                # 'road_5_3_2_0' -> 'road_5_3_2'
+                road_id = '_'.join(lane_id.split('_')[:-1])
+                
+                # 取得道路長度
+                road_length = self.road_lengths.get(road_id, 1.0)
+
+                #print(road_length)
+                #print(waiting_count)
+                # 加權計算
+                total_wait += waiting_count / (road_length)
+
+                #print(total_wait)
+        
+        return -float(total_wait)
+
+    def set_adaptive_sight(self, sight):
+        self.cur_adaptive_sight = sight
+
+    def render(self):
+        pass
+
+    def close(self):
+        pass
+
+    def seed(self, seed=None):
+        import numpy as _np
+        _np.random.seed(seed)
+
+    def save_replay(self):
+        pass
+
+    def get_stats(self):
+        # 暫時不回傳任何東西
+        return {}
+    
+
+    def get_env_info(self):
+        return {
+            "state_shape": self.get_state_size(),
+            "obs_shape": self.get_obs_size(),
+            "n_actions": self.get_total_actions(),
+            "n_agents": self.n_agents,
+            "episode_limit": self.episode_limit,
+            "cityflow_adjacency": self.cityflow_adjacency,
         }
 
 

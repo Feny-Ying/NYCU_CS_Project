@@ -133,7 +133,7 @@ class ParallelRunner:
 
     def run(self, test_mode=False):
         # Adaptive sight settings
-        self.adaptive_sight: Optional[str] = self.preprocess_manager.try_get_adaptive_sight(greedy=test_mode)
+        self.adaptive_sight: Optional[str] = self.preprocess_manager.try_get_adaptive_sight(greedy=test_mode, t_env = self.t_env)
         if self.adaptive_sight is not None:
             int_adaptive_sight = int(self.adaptive_sight[:-1])
         else:

@@ -45,10 +45,15 @@ class NonStationaryUCB:
         self.n_arms = len(self.arm_names)
         self.values = [deque(maxlen=self.window_size) for _ in range(self.n_arms)]
         self.history = deque(maxlen=self.window_size)
-
-    def compute_each_sight_ucb_exploitation_value(self):
-        return {arm_name: (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
+    '''
+    def compute_each_sight_ucb_exploitation_value(self, t_env):
+        return {arm_name:  (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
                 for arm_name, values in zip(self.arm_names, self.values)}
+    '''
+    def compute_each_sight_ucb_exploitation_value(self, t_env):
+        return {arm_name:  min(1.0, t_env / 1e8) * (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
+                for arm_name, values in zip(self.arm_names, self.values)}
+    
 
     def compute_each_sight_ucb_exploration_value(self):
         total_in_window = sum([len(values) for values in self.values])
@@ -61,7 +66,7 @@ class NonStationaryUCB:
             each_sight_exploration[self.arm_names[arm]] = self.c * np.sqrt(np.log(total_in_window) / n)
         return each_sight_exploration
 
-    def select_arm(self, greedy: bool = False):
+    def select_arm(self, t_env, greedy: bool = False):
         # 確保每個手臂至少選擇一次以避免除零錯誤
         total = len(self.history)
         if len(self.history) < self.n_arms:
@@ -70,7 +75,7 @@ class NonStationaryUCB:
             return idx
 
         # Calculate UCB values
-        each_sight_exploit_values = self.compute_each_sight_ucb_exploitation_value()
+        each_sight_exploit_values = self.compute_each_sight_ucb_exploitation_value(t_env)
         each_sight_explore_values = self.compute_each_sight_ucb_exploration_value()
         each_sight_ucb = {arm_name: exploit_value + (explore_value * (not greedy))
                           for arm_name, exploit_value, explore_value in
@@ -383,9 +388,9 @@ class PreprocessManager:
         else:
             raise self._unknown_env_type_error()
 
-    def try_get_adaptive_sight(self, greedy=False) -> Optional[str]:
+    def try_get_adaptive_sight(self, t_env, greedy=False) -> Optional[str]:
         if self.adaptive_worker:
-            return self.adaptive_worker.select_arm(greedy=greedy)
+            return self.adaptive_worker.select_arm(t_env = t_env, greedy=greedy)
         return None
 
     def get_next_visibility_str(self, t_env: int) -> Optional[str]:
@@ -432,10 +437,9 @@ class PreprocessManager:
                                          n_agents=self.n_agents, args=self.args)
         elif self.preprocess_env_type == 'cityflow':
             processed = cityflow_topo_preprocess(
-                                                    original_obs=obs_to_preprocess,
-                                                    adjacency=self.cityflow_adjacency,  # 或從 env_info 帶進來
-                                                    sight=int(visible_str[:-1])
-                                                )
+                                            original_obs=obs_to_preprocess,
+                                            use_dsr=self.use_preprocess,
+                                            sight=int(visible_str[:-1]))
         elif self.preprocess_env_type == 'asc2':
             return obs
         elif self.preprocess_env_type == 'metadrive':

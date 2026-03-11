@@ -54,7 +54,7 @@ class EpisodeRunner:
         self.t = 0
 
     def run(self, test_mode=False):
-        adaptive_sight: Optional[str] = self.preprocess_manager.try_get_adaptive_sight(greedy=test_mode)
+        adaptive_sight: Optional[str] = self.preprocess_manager.try_get_adaptive_sight(greedy=test_mode, t_env = self.t_env)
         # adaptive_sight is a str; turn it into int (e.g., 2s -> 2)
 
         if adaptive_sight is not None:
@@ -98,7 +98,7 @@ class EpisodeRunner:
             obs_dict = self.preprocess_manager.get_preprocessed_obs_dict(self.env.get_obs(), adaptive_sight)
             obs_key = self.preprocess_manager.get_obs_key(t_env=self.t_env)
             pre_data.update({k: [v] for k, v in obs_dict.items()})
-
+            #print(f"obs_shape: {len(obs_dict[obs_key][0])}")
             # Preprocess state
             if self.args.env == 'asc2':
                 if self.args.env_args['concatenate_obs_as_state']:
@@ -152,6 +152,22 @@ class EpisodeRunner:
             actions = self.mac.select_actions(self.batch, t_ep=self.t, t_env=self.t_env,
                                               test_mode=test_mode, obs_key=obs_key)
             reward, terminated, env_info = self.env.step(actions[0])
+
+            if test_mode:
+                # print(actions)
+                for i, action in enumerate(actions.squeeze(0)):
+                    tl_id = self.env.traffic_light_ids[i]
+                    action = int(action.item())
+                    # print(action)
+                    self.logger.log_stat(f"test_phase/train_step_{self.t_env}/{tl_id}", action, self.t)
+
+            #print(f"throughput", env_info.get("throughput", False))
+            #print(f"currenttime", self.env.eng.get_current_time())
+            #print(f"finished_vehicle_cnt", self.env.eng.get_finished_vehicle_cnt())
+            #print(f"active_vehicle_cnt", self.env.eng.get_vehicle_count())
+            #print(f"cumulative_travel_time", self.env.eng.get_cumulative_travel_time())
+
+            #print(env_info.get("delay", False))
             if self.args.force_render is True:
                 self.env.render()
             else:
@@ -210,11 +226,14 @@ class EpisodeRunner:
         # TODO: note that "get_stats" is not implemented in this runner!!!!!!!!!!! 🔥
         # print(f'env_info: {env_info}')
 
+        # print(f"train_status = {self.train_stats}")
         cur_stats = self.test_stats if test_mode else self.train_stats
+        # print(f"cur_stats = {cur_stats}")
         cur_returns = self.test_returns if test_mode else self.train_returns
         log_prefix = "test_" if test_mode else ""
         cur_stats.update({k: cur_stats.get(k, 0) + env_info.get(k, 0) for k in set(cur_stats) | set(env_info)})
         cur_stats["n_episodes"] = 1 + cur_stats.get("n_episodes", 0)
+        # print(cur_stats["n_episodes"])
         cur_stats["ep_length"] = self.t + cur_stats.get("ep_length", 0)
 
         if test_mode:
