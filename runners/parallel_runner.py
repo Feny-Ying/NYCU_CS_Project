@@ -11,6 +11,42 @@ if TYPE_CHECKING:
     from epy_tools.preprocess import PreprocessManager
 
 
+def normalized_reward_to_go(rewards, start_t, gamma=0.99):
+    """
+    rewards shape: [T, n_agents]
+    return shape: [n_agents]
+    """
+    if len(rewards) == 0 or start_t >= len(rewards):
+        return np.zeros(rewards.shape[1], dtype=np.float32)
+
+    G = np.zeros(rewards.shape[1], dtype=np.float32)
+    weight_sum = 0.0
+    power = 1.0
+
+    for t in range(start_t, len(rewards)):
+        G += power * rewards[t]
+        weight_sum += power
+        power *= gamma
+
+    return G / max(weight_sum, 1e-8)
+
+def segment_average_reward(rewards, start_t, end_t):
+    """
+    rewards shape: [T, n_agents]
+    return shape: [n_agents]
+    """
+    if len(rewards) == 0:
+        return None
+
+    end_t = min(end_t, len(rewards))
+    start_t = min(start_t, end_t)
+
+    if start_t >= end_t:
+        return None
+
+    return np.mean(rewards[start_t:end_t], axis=0)
+
+
 # Based (very) heavily on SubprocVecEnv from OpenAI Baselines
 # https://github.com/openai/baselines/blob/master/baselines/common/vec_env/subproc_vec_env.py
 class ParallelRunner:
@@ -75,7 +111,9 @@ class ParallelRunner:
         # adaptive_sight is a str; turn it into int (e.g., 2s -> 2)
 
         if self.adaptive_sight is not None:
-            int_adaptive_sight = int(self.adaptive_sight[:-1])
+            # 假設 self.adaptive_sight 現在是 ["100m", "200m", "150m", ...]
+            # 我們將每個元素都處理成整數，組成一個新的 list
+            int_adaptive_sight = [int(sight[:-1]) for sight in self.adaptive_sight]
         else:
             int_adaptive_sight = None
 
@@ -133,9 +171,16 @@ class ParallelRunner:
 
     def run(self, test_mode=False):
         # Adaptive sight settings
-        self.adaptive_sight: Optional[str] = self.preprocess_manager.try_get_adaptive_sight(greedy=test_mode, t_env = self.t_env)
+        cur_time_bin, self.adaptive_sight = self.preprocess_manager.try_get_temporal_adaptive_sights(
+            greedy=test_mode,
+            t_env=self.t_env,
+            t_ep=0,
+            episode_limit=self.episode_limit,
+        )
         if self.adaptive_sight is not None:
-            int_adaptive_sight = int(self.adaptive_sight[:-1])
+            # 假設 self.adaptive_sight 現在是 ["100m", "200m", "150m", ...]
+            # 我們將每個元素都處理成整數，組成一個新的 list
+            int_adaptive_sight = [int(sight[:-1]) for sight in self.adaptive_sight]
         else:
             int_adaptive_sight = None
         self.reset()
@@ -144,6 +189,20 @@ class ParallelRunner:
 
         all_terminated = False
         episode_returns = [0 for _ in range(self.batch_size)]
+
+        agent_episode_returns = np.zeros((self.batch_size, self.env_info["n_agents"]))
+
+        agent_reward_trajs = [[] for _ in range(self.batch_size)]
+
+        sight_records = [[] for _ in range(self.batch_size)]
+
+        for b in range(self.batch_size):
+            sight_records[b].append({
+                "start_t": 0,
+                "time_bin": cur_time_bin,
+                "sights": list(self.adaptive_sight),
+            })
+
         episode_lengths = [0 for _ in range(self.batch_size)]
         self.mac.init_hidden(batch_size=self.batch_size)
         terminated = [False for _ in range(self.batch_size)]
@@ -164,6 +223,30 @@ class ParallelRunner:
                 "actions": actions.unsqueeze(1)
             }
             self.batch.update(actions_chosen, bs=envs_not_terminated, ts=self.t, mark_filled=False)
+
+            # 下一個 obs 對應的是 t + 1
+            next_t = self.t + 1
+
+            new_time_bin = self.preprocess_manager.get_temporal_ucb_bin(
+                t_ep=next_t,
+                episode_limit=self.episode_limit,
+            )
+
+            # 進入新的 time bin 才重新選 sight
+            if self.adaptive_sight is not None and new_time_bin != cur_time_bin:
+                cur_time_bin, self.adaptive_sight = self.preprocess_manager.try_get_temporal_adaptive_sights(
+                    greedy=test_mode,
+                    t_env=self.t_env,
+                    t_ep=next_t,
+                    episode_limit=self.episode_limit,
+                )
+
+                for b in envs_not_terminated:
+                    sight_records[b].append({
+                        "start_t": next_t,
+                        "time_bin": cur_time_bin,
+                        "sights": list(self.adaptive_sight),
+                    })
 
             # Send actions to each env
             action_idx = 0
@@ -212,6 +295,16 @@ class ParallelRunner:
                     post_transition_data["reward"].append((data["reward"],))
 
                     episode_returns[idx] += data["reward"]
+
+                    if "local_rewards" in data["info"]:
+                        local_rewards = np.array(data["info"]["local_rewards"], dtype=np.float32)
+
+                        # 原本整局總和保留
+                        agent_episode_returns[idx] += local_rewards
+
+                        # 新增：每一步 local reward 都存起來，episode end 後算 reward-to-go
+                        agent_reward_trajs[idx].append(local_rewards)
+                        
                     episode_lengths[idx] += 1
                     if not test_mode:
                         self.env_steps_this_run += 1
@@ -270,12 +363,67 @@ class ParallelRunner:
 
         # Update the adaptive worker using training episode returns
         # TODO: whether use only training episodes?
+        # segment average reward for each sight segment
         if self.adaptive_sight is not None:
-            # for episode_return in episode_returns:
-            #     self.preprocess_manager.adaptive_worker.update(arm_name=self.adaptive_sight, reward=episode_return)
             if not test_mode:
-                for episode_return in episode_returns:
-                    self.preprocess_manager.adaptive_worker.update(arm_name=self.adaptive_sight, reward=episode_return)
+                for b in range(self.batch_size):
+                    rewards = np.array(agent_reward_trajs[b], dtype=np.float32)
+
+                    if rewards.size == 0:
+                        continue
+
+                    for i, record in enumerate(sight_records[b]):
+                        start_t = record["start_t"]
+                        time_bin = record["time_bin"]
+                        sights = record["sights"]
+
+                        # 下一個 sight record 的 start_t 就是這段 segment 的結束
+                        if i + 1 < len(sight_records[b]):
+                            end_t = sight_records[b][i + 1]["start_t"]
+                        else:
+                            end_t = len(rewards)
+
+                        segment_reward = segment_average_reward(
+                            rewards=rewards,
+                            start_t=start_t,
+                            end_t=end_t,
+                        )
+
+                        if segment_reward is None:
+                            continue
+
+                        self.preprocess_manager.update_temporal_adaptive_agents(
+                            time_bin=time_bin,
+                            arm_names=sights,
+                            rewards=segment_reward,
+                        )
+        # Update the adaptive worker using training episode returns
+        # if self.adaptive_sight is not None:
+        #     if not test_mode:
+        #         gamma = getattr(self.args, "temporal_ucb_gamma", 0.99)
+
+        #         for b in range(self.batch_size):
+        #             rewards = np.array(agent_reward_trajs[b], dtype=np.float32)
+
+        #             if rewards.size == 0:
+        #                 continue
+
+        #             for record in sight_records[b]:
+        #                 start_t = record["start_t"]
+        #                 time_bin = record["time_bin"]
+        #                 sights = record["sights"]
+
+        #                 rtg = normalized_reward_to_go(
+        #                     rewards=rewards,
+        #                     start_t=start_t,
+        #                     gamma=gamma,
+        #                 )
+
+        #                 self.preprocess_manager.update_temporal_adaptive_agents(
+        #                     time_bin=time_bin,
+        #                     arm_names=sights,
+        #                     rewards=rtg,
+        #                 )
 
         # Get stats back for each env
         for parent_conn in self.parent_conns:
@@ -299,19 +447,40 @@ class ParallelRunner:
         # print(f'env_stats {env_stats}')
 
         infos = [cur_stats] + final_env_infos + env_stats
-        cur_stats.update({k: sum(d.get(k, 0) for d in infos) for k in set.union(*[set(d) for d in infos])})
+        
+        # 建立一個新的統計字典，過濾掉無法直接加總的非數值資料
+        new_stats = {}
+        all_keys = set.union(*[set(d) for d in infos])
+        
+        for k in all_keys:
+            # 找到第一個有值的資料來判斷型別
+            first_val = next((d[k] for d in infos if k in d), None)
+            
+            # 只有當資料是數字 (int, float, np.number) 時才進行 sum
+            if isinstance(first_val, (int, float, np.number)):
+                new_stats[k] = sum(d.get(k, 0) for d in infos)
+            else:
+                # 如果是 list (如 local_rewards) 或其他非數值，不進行全局統計加總
+                continue
+        
+        cur_stats.update(new_stats)
+        
+        # 以下原本的邏輯維持不變
         cur_stats["n_episodes"] = self.batch_size + cur_stats.get("n_episodes", 0)
-        # if test_mode:
-        #     print(f'----------------------------------------------------- t = {self.t_env}')
-        #     print(f'cur_stats.get("n_episodes", 0): {cur_stats.get("n_episodes", 0)}')
-        #     print(f"cur_stats.get('selected_sight', 0): {cur_stats.get('selected_sight', 0)}")
         cur_stats["ep_length"] = sum(episode_lengths) + cur_stats.get("ep_length", 0)
 
         if test_mode:
-            # print(f'cur int_adaptive_sight: {int_adaptive_sight}')
             if int_adaptive_sight is not None:
-                cur_stats['selected_sight'] = int_adaptive_sight * self.batch_size + cur_stats.get('selected_sight', 0)
-            # print(f"after update cur_stats['selected_sight']: {cur_stats['selected_sight']}")
+                # int_adaptive_sight 是 [100, 50, 150...]
+                for i, sight in enumerate(int_adaptive_sight):
+                    # 替每個 agent 建立獨立的 key
+                    key = f'selected_sight_agent_{i}'
+                    # 累加該 agent 的距離 (乘以 batch_size 是為了之後算平均)
+                    cur_stats[key] = (sight * self.batch_size) + cur_stats.get(key, 0)
+                
+                # 同時保留一個總平均值，方便看整體趨勢
+                avg_sight = sum(int_adaptive_sight) / len(int_adaptive_sight)
+                cur_stats['selected_sight'] = (avg_sight * self.batch_size) + cur_stats.get('selected_sight', 0)
 
         cur_returns.extend(episode_returns)
 

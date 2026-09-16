@@ -937,6 +937,7 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         self.MAX_SIGHT = max_sight
         self.cur_adaptive_sight = default_sight
         self.sight_mode = sight_mode  # 'grid', 'cross', or 'hop'
+        self.sight_buckets = [25,50,75,100]
 
         # 提取網格座標（從 intersection_col_row 格式）
         self.tl_grid_coords = self._extract_grid_coordinates()
@@ -953,6 +954,11 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         self.last_total_wait = 0.0
 
         self.current_phase = {tl_id: 0 for tl_id in self.traffic_light_ids}
+
+        self.episode = 0
+        self.tl_waiting_history = {}
+        self.dsr_intersections = []
+        self.fixed_distance = [30,30,30]
 
     def _extract_grid_coordinates(self):
         """
@@ -1137,7 +1143,7 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
                 adj[i, j] = 1
                 adj[j, i] = 1
         return adj
-    
+    '''
     def _compute_max_obs_len(self):
         """用 MAX_SIGHT 計算 obs 最大長度 每個node3維"""
         max_len = 0
@@ -1146,11 +1152,46 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
             cur_len = 3 + len(neighbors) * 3  # phase + wait + vehicle_count + avg_speed + hop
             max_len = max(max_len, cur_len)
         return max_len
+    '''
+    # def _compute_max_obs_len(self):
+    #     """用 MAX_SIGHT 計算 obs 最大長度 每個node3維"""
+    #     max_len = 0
+    #     for tl_id in self.traffic_light_ids:
+    #         length = 0
+    #         for lane_id in self.tl_to_lanes[tl_id]:
+    #             length += 1
+    #         if length> max_len:
+    #              max_len = length
+    #     return max_len + 1  # 加上 phase 的維度
+    
+    def _compute_max_obs_len(self):
+        """
+        計算 obs 最大長度：
+        - 每個路口 phase 佔 1 維
+        - 每條 lane 的每個 bucket 各佔 1 維
+        """
+        max_len = 0
+        for tl_id in self.traffic_light_ids:
+            num_lanes = len(self.tl_to_lanes[tl_id])
+            length = num_lanes * len(self.sight_buckets)
+            if length > max_len:
+                max_len = length
 
+        return max_len + 1  # 加上 phase 的維度
+    
     def reset(self):
         self.eng.reset()
         self.t = 0
-        self.last_total_wait = 0.0
+        
+        initial_local_waits, initial_total_wait = self.calculate_reward()
+        self.last_local_waits = initial_local_waits
+        self.last_total_wait = initial_total_wait
+
+        self.episode += 1
+        # 只有第一個 episode 才清空 history
+        if self.episode == 1:
+            self.tl_waiting_history = {}
+
         # reset phase states to 0
         for tl in self.current_phase:
             self.current_phase[tl] = 0
@@ -1170,28 +1211,93 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
         #         self.current_phase[tl_id] = (self.current_phase[tl_id] + 1) % 9  # 更新自己的相位紀錄
 
         # 一次執行15秒
-        for _ in range(15):
+        for _ in range(5):
             self.eng.next_step()
         self.t += 1
 
+        # if self.episode == 1:
+        #     lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+
+        #     for tl_id, lanes in self.tl_to_lanes.items():
+        #         total_q = 0
+        #         for lane in lanes:
+        #             total_q += lane_waiting.get(lane, 0)
+
+        #         if tl_id not in self.tl_waiting_history:
+        #             self.tl_waiting_history[tl_id] = []
+
+        #         self.tl_waiting_history[tl_id].append(total_q)
 
         obs = self.get_obs()
         state = self.get_state()
         
-        current_total_wait = self.calculate_reward()
+        current_local_waits, current_total_sum = self.calculate_reward()
         #print(f'[ CityFlow ] Step {self.t}, Reward: {reward}')
-        reward = current_total_wait
-        # reward = current_total_wait - self.last_total_wait
-        self.last_total_wait = current_total_wait
+        local_rewards = [
+                    cur - last for cur, last in zip(current_local_waits, self.last_local_waits)
+                ]
+        
+        # 全局 Reward (用於神經網路訓練)
+        global_reward = sum(local_rewards)
+        
+        # 更新紀錄
+        self.last_local_waits = current_local_waits
+        self.last_total_wait = current_total_sum
 
         #reward = self.calculate_weighted_reward()
         #print(f'[ CityFlow ] Step {self.t}, Reward: {reward}')
+
         terminated = (self.t >= self.episode_limit)
+
+        # if terminated and self.episode == 1:
+        #     import numpy as np
+
+        #     print("\n===== Selecting DSR Intersections =====")
+
+        #     self.dsr_intersections = []
+
+        #     for tl_id, qs in self.tl_waiting_history.items():
+        #         max_q = float(np.max(qs))
+
+        #         if max_q > 20:
+        #             self.dsr_intersections.append(tl_id)
+        #             print(f"DSR Enabled: {tl_id} (max={max_q:.2f})")
+
+        #     print("================================\n")
+        
+        # lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        # lane_total = self.eng.get_lane_vehicle_count()
+        # print(obs)
+
+        # lane_id = "road_1_0_1_1"
+
+        # lane_vehicles = self.eng.get_lane_vehicles()
+        # vehicle_speed = self.eng.get_vehicle_speed()
+        # vehicle_distance = self.eng.get_vehicle_distance()
+
+        # print(f"\n=== Lane Detail: {lane_id} ===")
+
+        # vehicles = lane_vehicles.get(lane_id, [])
+
+        # # 按距離排序（超重要）
+        # vehicles_sorted = sorted(vehicles, key=lambda vid: vehicle_distance[vid])
+
+        # for vid in vehicles_sorted:
+        #     speed = vehicle_speed[vid]
+        #     dist = vehicle_distance[vid]
+        #     is_waiting = speed < 0.1
+
+        #     print(f"id={vid}, dist={dist:.1f}, speed={speed:.2f}, waiting={is_waiting}")
+
+        # print("================================\n")
+
+        
         info = {"throughput": self.eng.get_throughput(),
                 "delay": self.eng.get_delay(),
-                "average_travel_time": self.eng.get_average_travel_time()}
-
-        return reward, terminated, info
+                "average_travel_time": self.eng.get_average_travel_time(),
+                "local_rewards": local_rewards}
+        
+        return global_reward, terminated, info
     
     def get_avg_speed_of_intersection(self, tl_id):
         speeds = []
@@ -1209,7 +1315,8 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
             self._lane_vehicle_cnt.get(l, 0)
             for l in self.tl_to_lanes[tl_id]
         )
-
+    '''
+    # 根據 agent_id 和目前的視野設定，回傳該 agent 的觀測值（包含鄰居資訊）
     def get_obs_agent(self, agent_id):
         tl_id = self.traffic_light_ids[agent_id]
         obs = []
@@ -1250,17 +1357,101 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
             obs += [0.0] * (self.max_obs_len - len(obs))
 
         return np.array(obs, dtype=np.float32)
+    '''
+    # 根據 agent_id 回傳該 agent 的觀測值與道路長度
+    # def get_obs_agent(self, agent_id):
+    #     tl_id = self.traffic_light_ids[agent_id]
+    #     obs = []
+
+    #     obs.append(float(self.current_phase[tl_id]))
+
+    #     for lane_id in self.tl_to_lanes[tl_id]:
+    #         queue = self._lane_waiting.get(lane_id, 0)
+
+    #         if tl_id in self.dsr_intersections:
+    #             if queue > 5:
+    #                 obs.append(float(5))
+    #             else:
+    #                 obs.append(float(queue))
+    #         else:
+    #             obs.append(float(queue))
+    #         '''
+    #         # 從 lane_id 提取 road_id
+    #         # 'road_5_3_2_0' -> 'road_5_3_2'
+    #         road_id = '_'.join(lane_id.split('_')[:-1])
+            
+    #         # 取得道路長度
+    #         road_length = self.road_lengths.get(road_id, 1.0)
+    #         obs.append(self.road_lengths[tl_id])
+    #         '''
+
+    #     if len(obs) < self.max_obs_len:
+    #         obs += [0.0] * (self.max_obs_len - len(obs))
+
+    #     return np.array(obs, dtype=np.float32)
+    
+    #根據距離
+    def get_obs_agent(self, agent_id):
+        tl_id = self.traffic_light_ids[agent_id]
+        obs = []
+
+        # phase
+        obs.append(float(self.current_phase[tl_id]))
+
+        vehicle_distance = self.eng.get_vehicle_distance()
+
+        # # 🔥 判斷是否為 DSR 路口
+        # if tl_id in self.dsr_intersections:
+        #     sight_buckets = self.sight_buckets   # 多距離
+        # else:
+        #     sight_buckets = self.fixed_distance  # 固定距離
+
+        for lane_id in self.tl_to_lanes[tl_id]:
+
+            vehicles = self._lane_vehicles.get(lane_id, [])
+
+            # lane 長度
+            road_id = "_".join(lane_id.split("_")[:-1])
+            lane_length = self.road_lengths.get(road_id, 200)
+
+            prev_dist = 0
+
+            for bucket_dist in self.sight_buckets:
+
+                count_in_bucket = sum(
+                    1
+                    for vid in vehicles
+                    if  prev_dist < (lane_length - vehicle_distance.get(vid, 0)) <= bucket_dist
+                )
+
+                obs.append(float(count_in_bucket))
+
+                prev_dist = bucket_dist
+
+        # padding
+        if len(obs) < self.max_obs_len:
+            obs += [0.0] * (self.max_obs_len - len(obs))
+
+        return np.array(obs, dtype=np.float32)
+
     
     def get_obs(self):
         self._lane_waiting = self.eng.get_lane_waiting_vehicle_count()
         #self._lane_vehicle_cnt = self.eng.get_lane_vehicle_count()
-        #self._lane_vehicles = self.eng.get_lane_vehicles()
+        self._lane_vehicles = self.eng.get_lane_vehicles()
         #self._vehicle_speeds = self.eng.get_vehicle_speed()
         return [self.get_obs_agent(i) for i in range(self.n_agents)]
 
     def get_obs_size(self):
-        """提供給模型 input dim"""
-        return self.max_obs_len // 3 * 2  # 不包含 hop 資訊
+        """提供給模型 input dim (preprocess 後)"""
+        
+        max_lanes = 0
+        for tl_id in self.traffic_light_ids:
+            num_lanes = len(self.tl_to_lanes[tl_id])
+            if num_lanes > max_lanes:
+                max_lanes = num_lanes
+
+        return max_lanes + 1
 
     def get_state(self):
         """拼接所有 agent 的觀測作為全域 state"""
@@ -1268,7 +1459,12 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
     
     def get_state_size(self):
         """Returns the total state dimension for CityFlow"""
-        return self.n_agents * (self.max_obs_len // 3 * 2)  # 不包含 hop 資訊
+        max_lanes = 0
+        for tl_id in self.traffic_light_ids:
+            num_lanes = len(self.tl_to_lanes[tl_id])
+            if num_lanes > max_lanes:
+                max_lanes = num_lanes
+        return self.n_agents * (max_lanes + 1) #(self.max_obs_len // 3 * 2)  # 不包含 hop 資訊
 
     def get_avail_agent_actions(self, agent_id):
         tl_id = self.traffic_light_ids[agent_id]
@@ -1307,20 +1503,35 @@ class CityFlowMultiAgentEnv(MultiAgentEnv):
     
     def calculate_reward(self):
         lane_waiting = self.eng.get_lane_waiting_vehicle_count()
+        local_rewards = []  # 用來存每個路口的 reward
         total_wait = 0
 
-        #print("=== Lane waiting debug ===")
         for tl in self.traffic_light_ids:
-            #print(f"[TL {tl}]")
+            tl_wait = 0  # 該路口的等待數
             for l in self.tl_to_lanes[tl]:
                 w = lane_waiting.get(l, 0)
-                #print(f"  lane {l}: waiting = {w}")
-                total_wait += w
+                tl_wait += w
+            
+            # CityFlow 中等待數愈多 reward 愈低，所以取負值
+            local_rewards.append(-float(tl_wait))
+            total_wait += tl_wait
 
-        #print(f"TOTAL waiting = {total_wait}")
-        #print("==========================")
+        # 回傳兩個值：局部獎勵清單，以及總獎勵
+        return local_rewards, -float(total_wait)
+    
+    #計算所有車輛數
+    # def calculate_reward(self):
+    #     total_vehicle = 0
 
-        return -float(total_wait)
+    #     for tl in self.traffic_light_ids:
+    #         for lane_id in self.tl_to_lanes[tl]:
+
+    #             vehicles = self._lane_vehicles.get(lane_id, [])
+
+    #             # 只算可觀察範圍內
+    #             total_vehicle += len(vehicles)
+
+    #     return -float(total_vehicle)
     
     def calculate_weighted_reward(self):
         lane_waiting = self.eng.get_lane_waiting_vehicle_count()

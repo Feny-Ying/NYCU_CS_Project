@@ -49,12 +49,14 @@ class NonStationaryUCB:
     def compute_each_sight_ucb_exploitation_value(self, t_env):
         return {arm_name:  (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
                 for arm_name, values in zip(self.arm_names, self.values)}
+    
     '''
     def compute_each_sight_ucb_exploitation_value(self, t_env):
-        return {arm_name:  min(1.0, t_env / 1e8) * (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
+        return {arm_name:  min(1.0, t_env / 5e5) * (np.mean(values) + self.return_add) / self.return_div if len(values) > 0 else 0.0
                 for arm_name, values in zip(self.arm_names, self.values)}
     
 
+    
     def compute_each_sight_ucb_exploration_value(self):
         total_in_window = sum([len(values) for values in self.values])
         each_sight_exploration = {}
@@ -182,7 +184,7 @@ class PreprocessManager:
             self.preprocess_desc = None
         self.use_preprocess: bool = preprocess_desc is not None
         self.reset_buffer_after_switch_visibility = reset_buffer_after_switch_visibility
-        self.adaptive_worker: Optional[NonStationaryUCB] = None
+        self.adaptive_workers: Optional[NonStationaryUCB] = None
         self.add_sight_id_len = int(add_sight_id_len) if add_sight_id_len is not None else None
         self.cityflow_adjacency = args.cityflow_adjacency  if args.cityflow_adjacency  is not None else None
 
@@ -203,8 +205,24 @@ class PreprocessManager:
             # Check if there's a keyword
             if 'ucb' in self.switch_visibility_str:
                 self.switch_time_to_visibility_str = None
-                self.adaptive_worker = NonStationaryUCB(args=args, ucb_desc=self.switch_visibility_str)
-                self.possible_visibility_str = self.adaptive_worker.arm_names
+
+                # 一個 episode 切成幾段，例如 5 段
+                self.temporal_ucb_bins = getattr(args, "temporal_ucb_bins", 10)
+
+                # temporal_adaptive_workers[time_bin][agent_id]
+                self.temporal_adaptive_workers = [
+                    [
+                        NonStationaryUCB(args=args, ucb_desc=self.switch_visibility_str)
+                        for _ in range(n_agents)
+                    ]
+                    for _ in range(self.temporal_ucb_bins)
+                ]
+
+                # 保留 adaptive_workers，讓原本 run.py 的判斷不會壞掉
+                # 這裡只拿 bin 0 當 compatibility 用
+                self.adaptive_workers = self.temporal_adaptive_workers[0]
+
+                self.possible_visibility_str = self.temporal_adaptive_workers[0][0].arm_names
             elif any([keyword in self.switch_visibility_str for keyword in self.available_auto_switch_visibility_str]):
                 switch_time_to_visibility_str = self._parse_auto_switch_visibility_str()
                 self.switch_time_to_visibility_str = dict(
@@ -262,7 +280,7 @@ class PreprocessManager:
 
     def get_adaptive_sight_index(self, adaptive_sight):
         """Return the one-hot vector of the sight by the obs_key"""
-        return self.adaptive_worker.arm_names.index(adaptive_sight)
+        return self.adaptive_workers[0].arm_names.index(adaptive_sight)
 
     def _parse_auto_switch_visibility_str(self):
         """Parse the switch_visibility_str if it contains a keyword. Return a dict of switch time to visibility str."""
@@ -314,7 +332,7 @@ class PreprocessManager:
         """
         if not self.use_preprocess:
             return None
-        if self.adaptive_worker is not None:
+        if self.adaptive_workers is not None:
             return None
         elif self.preprocess_env_type in ['cityflow','lbf', 'resco', 'rware', 'asc2', 'metadrive', 'resco2']:
             start_sight = int(self.original_visibility_str[:-1])  # e.g., 15 in "15s"
@@ -388,16 +406,65 @@ class PreprocessManager:
         else:
             raise self._unknown_env_type_error()
 
-    def try_get_adaptive_sight(self, t_env, greedy=False) -> Optional[str]:
-        if self.adaptive_worker:
-            return self.adaptive_worker.select_arm(t_env = t_env, greedy=greedy)
-        return None
+    def try_get_adaptive_sights(self, t_env, greedy=False):
+        # 回傳所有 agent 的距離決策 list
+        return [w.select_arm(t_env=t_env, greedy=greedy) for w in self.adaptive_workers]
+
+    def update_adaptive_agents(self, arm_names, rewards):
+        # arm_names: list of strings, rewards: list of floats
+        for worker, arm, rew in zip(self.adaptive_workers, arm_names, rewards):
+            worker.update(arm, rew)
+
+    def get_temporal_ucb_bin(self, t_ep, episode_limit):
+        """
+        根據 episode 內的時間 t_ep 決定目前是第幾個 time bin。
+        例如 temporal_ucb_bins=5:
+        0%~20%   -> bin 0
+        20%~40%  -> bin 1
+        ...
+        """
+        if not hasattr(self, "temporal_ucb_bins"):
+            return 0
+
+        ratio = t_ep / max(episode_limit, 1)
+        time_bin = int(ratio * self.temporal_ucb_bins)
+        return min(time_bin, self.temporal_ucb_bins - 1)
+
+
+    def try_get_temporal_adaptive_sights(self, t_env, t_ep, episode_limit, greedy=False):
+        """
+        回傳目前 time_bin 下，每個 agent 選到的 sight。
+        """
+        time_bin = self.get_temporal_ucb_bin(t_ep, episode_limit)
+
+        if hasattr(self, "temporal_adaptive_workers"):
+            workers = self.temporal_adaptive_workers[time_bin]
+        else:
+            workers = self.adaptive_workers
+
+        sights = [w.select_arm(t_env=t_env, greedy=greedy) for w in workers]
+        return time_bin, sights
+
+
+    def update_temporal_adaptive_agents(self, time_bin, arm_names, rewards):
+        """
+        更新某個 time_bin 裡面，每個 agent 的 SW-UCB。
+        arm_names: list[str], 每個 agent 當時選到的 sight
+        rewards: list[float], 每個 agent 的 reward-to-go
+        """
+        if hasattr(self, "temporal_adaptive_workers"):
+            workers = self.temporal_adaptive_workers[time_bin]
+        else:
+            workers = self.adaptive_workers
+
+        for worker, arm, rew in zip(workers, arm_names, rewards):
+            worker.update(arm, rew)
 
     def get_next_visibility_str(self, t_env: int) -> Optional[str]:
         """回傳下一個視野是什麼，若不存在則回傳 None"""
         if not self.use_preprocess:
             return None
-        if self.adaptive_worker is not None:
+        if self.adaptive_workers is not None:
             raise ValueError('Not support adaptive_worker')
         cur_visibility_str = self.preprocess_schedule_func(t_env)
         if self.preprocess_env_type in ['cityflow','lbf', 'rware', 'asc2', 'metadrive']:
@@ -415,6 +482,17 @@ class PreprocessManager:
 
     def get_one_preprocessed_obs(self, obs, visible_str):
         return self._get_one_preprocessed_obs(obs, visible_str)
+    
+    def parse_sight_value(self, s):
+        # 如果已經是 int 或 float 則直接回傳
+        if isinstance(s, (int, float)):
+            return int(s)
+        # 如果是字串，過濾掉所有非數字字元 (例如 '100m' -> '100', '0s' -> '0')
+        import re
+        numeric_part = re.sub(r'[^0-9]', '', str(s))
+        if numeric_part == '':
+            return 0 # 或者拋出更有意義的錯誤
+        return int(numeric_part)
 
     def _get_one_preprocessed_obs(self, obs, visible_str):
         obs = np.array(obs)
@@ -436,10 +514,16 @@ class PreprocessManager:
                                          new_sight=int(visible_str[:-1]), original_obs=obs_to_preprocess,
                                          n_agents=self.n_agents, args=self.args)
         elif self.preprocess_env_type == 'cityflow':
+            # 判斷 visible_str 是單一字串還是 List
+            if isinstance(visible_str, list):
+                sights = [self.parse_sight_value(s) for s in visible_str]
+            else:
+                sights = self.parse_sight_value(visible_str)
+
             processed = cityflow_topo_preprocess(
-                                            original_obs=obs_to_preprocess,
-                                            use_dsr=self.use_preprocess,
-                                            sight=int(visible_str[:-1]))
+                            original_obs=obs_to_preprocess,
+                            use_dsr=self.use_preprocess,
+                            sight=sights) # 傳入 list 或單一 int
         elif self.preprocess_env_type == 'asc2':
             return obs
         elif self.preprocess_env_type == 'metadrive':
@@ -533,7 +617,7 @@ class PreprocessManager:
         """
         if not self.use_preprocess:
             return None
-        if self.adaptive_worker is not None:
+        if self.adaptive_workers is not None:
             return None
         assert (t_env is None) != (visibility_str is None), "At least one of it should be given."
         if t_env is not None:

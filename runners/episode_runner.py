@@ -153,13 +153,14 @@ class EpisodeRunner:
                                               test_mode=test_mode, obs_key=obs_key)
             reward, terminated, env_info = self.env.step(actions[0])
 
-            if test_mode:
-                # print(actions)
-                for i, action in enumerate(actions.squeeze(0)):
-                    tl_id = self.env.traffic_light_ids[i]
-                    action = int(action.item())
-                    # print(action)
-                    self.logger.log_stat(f"test_phase/train_step_{self.t_env}/{tl_id}", action, self.t)
+            # 紀錄單個episode內的phase selection
+            # if test_mode:
+            #     # print(actions)
+            #     for i, action in enumerate(actions.squeeze(0)):
+            #         tl_id = self.env.traffic_light_ids[i]
+            #         action = int(action.item())
+            #         # print(action)
+            #         self.logger.log_stat(f"test_phase/train_step_{self.t_env}/{tl_id}", action, self.t)
 
             #print(f"throughput", env_info.get("throughput", False))
             #print(f"currenttime", self.env.eng.get_current_time())
@@ -226,14 +227,11 @@ class EpisodeRunner:
         # TODO: note that "get_stats" is not implemented in this runner!!!!!!!!!!! 🔥
         # print(f'env_info: {env_info}')
 
-        # print(f"train_status = {self.train_stats}")
         cur_stats = self.test_stats if test_mode else self.train_stats
-        # print(f"cur_stats = {cur_stats}")
         cur_returns = self.test_returns if test_mode else self.train_returns
         log_prefix = "test_" if test_mode else ""
         cur_stats.update({k: cur_stats.get(k, 0) + env_info.get(k, 0) for k in set(cur_stats) | set(env_info)})
         cur_stats["n_episodes"] = 1 + cur_stats.get("n_episodes", 0)
-        # print(cur_stats["n_episodes"])
         cur_stats["ep_length"] = self.t + cur_stats.get("ep_length", 0)
 
         if test_mode:

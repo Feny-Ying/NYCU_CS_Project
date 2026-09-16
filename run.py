@@ -164,7 +164,7 @@ def run_sequential(args, logger):
     preprocess = {"actions": ("actions_onehot", [OneHot(out_dim=args.n_actions)])}
 
     # If preprocessing, add more schemes
-    if preprocess_manager.adaptive_worker is not None:
+    if preprocess_manager.adaptive_workers is not None:
         pass
     else:
         for possible_str in preprocess_manager.possible_visibility_str + [preprocess_manager.original_visibility_str]:
@@ -364,35 +364,173 @@ def run_sequential(args, logger):
         buffer.insert_episode_batch(episode_batch)
 
         # Log Adaptive Worker
-        if preprocess_manager.adaptive_worker is not None:
-            if runner.t_env - learner.log_stats_t >= args.learner_log_interval:
-                sight_to_times = preprocess_manager.adaptive_worker.get_each_sight_ratio_in_window()
-                for sight, times in sight_to_times.items():
-                    logger.log_stat(f"adaptive_worker/{sight}_times", times, runner.t_env)
+        has_flat_workers = (
+            hasattr(preprocess_manager, "adaptive_workers")
+            and preprocess_manager.adaptive_workers is not None
+        )
 
-        # Log Adaptive Worker
-        if preprocess_manager.adaptive_worker is not None:
-            if runner.t_env - learner.log_stats_t >= args.learner_log_interval:
-                if preprocess_manager.adaptive_worker.n_arms > 1:
-                    sight_to_exploitation = preprocess_manager.adaptive_worker.compute_each_sight_ucb_exploitation_value(t_env = runner.t_env)
-                    sight_to_exploration = preprocess_manager.adaptive_worker.compute_each_sight_ucb_exploration_value()
-                    sight_to_ucb_values = {sight: sight_to_exploitation[sight] + sight_to_exploration[sight] for sight
-                                           in
-                                           sight_to_exploitation}
-                    # if inf exists, skip logging
-                    if all([not np.isinf(v) for v in sight_to_ucb_values.values()]):
-                        for sight in sight_to_ucb_values.keys():
-                            if sight_to_exploitation is not None:
-                                logger.log_stat(f"sight_exploit/{sight}", sight_to_exploitation[sight], runner.t_env)
-                                logger.log_stat(f"sight_explore/{sight}", sight_to_exploration[sight], runner.t_env)
-                                logger.log_stat(f"sight_ucb_total/{sight}", sight_to_ucb_values[sight], runner.t_env)
-                history_len_enough = len(preprocess_manager.adaptive_worker.history) >= (
-                        preprocess_manager.adaptive_worker.n_arms * args.batch_size_run)
-                if preprocess_manager.adaptive_worker.n_arms == 1 or history_len_enough:
-                    sight_to_times = preprocess_manager.adaptive_worker.get_each_sight_ratio_in_window()
-                    if sight_to_times is not None:
-                        for sight in sight_to_times.keys():
-                            logger.log_stat(f"sight_times_in_window/{sight}", sight_to_times[sight], runner.t_env)
+        has_temporal_workers = (
+            hasattr(preprocess_manager, "temporal_adaptive_workers")
+            and preprocess_manager.temporal_adaptive_workers is not None
+        )
+
+        if (has_flat_workers or has_temporal_workers) and runner.t_env - learner.log_stats_t >= args.learner_log_interval:
+
+            # =========================================================
+            # 1. 決定要 log 哪些 workers
+            #    舊版: adaptive_workers = [agent_worker]
+            #    新版: temporal_adaptive_workers = [time_bin][agent_worker]
+            # =========================================================
+            if has_temporal_workers:
+                workers_to_log = [
+                    worker
+                    for workers_in_bin in preprocess_manager.temporal_adaptive_workers
+                    for worker in workers_in_bin
+                ]
+            else:
+                workers_to_log = preprocess_manager.adaptive_workers
+
+            # 避免 temporal 某些 bin 還完全沒資料
+            workers_to_log = [
+                worker for worker in workers_to_log
+                if len(worker.history) > 0
+            ]
+
+            if len(workers_to_log) == 0:
+                # 還沒有任何 UCB update，先不 log
+                pass
+            else:
+                num_workers = len(workers_to_log)
+
+                # =========================================================
+                # 2. 處理比例統計 Sight Ratio
+                # =========================================================
+                avg_sight_to_times = {}
+
+                for worker in workers_to_log:
+                    sight_to_times = worker.get_each_sight_ratio_in_window()
+
+                    for sight, times in sight_to_times.items():
+                        avg_sight_to_times[sight] = (
+                            avg_sight_to_times.get(sight, 0.0)
+                            + times / num_workers
+                        )
+
+                for sight, times in avg_sight_to_times.items():
+                    logger.log_stat(
+                        f"adaptive_worker/{sight}_times",
+                        times,
+                        runner.t_env,
+                    )
+
+                # =========================================================
+                # 3. 處理 UCB 數值 Exploitation / Exploration
+                # =========================================================
+                ref_worker = workers_to_log[0]
+
+                if ref_worker.n_arms > 1:
+                    sum_exploit = {}
+                    sum_explore = {}
+                    count_exploit = {}
+                    count_explore = {}
+
+                    for worker in workers_to_log:
+                        exploit = worker.compute_each_sight_ucb_exploitation_value(
+                            t_env=runner.t_env
+                        )
+                        explore = worker.compute_each_sight_ucb_exploration_value()
+
+                        for sight in exploit:
+                            # exploit 通常不會 inf，但還是防一下
+                            if not np.isinf(exploit[sight]) and not np.isnan(exploit[sight]):
+                                sum_exploit[sight] = sum_exploit.get(sight, 0.0) + exploit[sight]
+                                count_exploit[sight] = count_exploit.get(sight, 0) + 1
+
+                            # explore 在某些 arm 沒被選過時會是 inf
+                            # 這種情況不要拿去平均，否則 total_ucb 會 inf
+                            if not np.isinf(explore[sight]) and not np.isnan(explore[sight]):
+                                sum_explore[sight] = sum_explore.get(sight, 0.0) + explore[sight]
+                                count_explore[sight] = count_explore.get(sight, 0) + 1
+
+                    for sight in sum_exploit:
+                        if count_exploit.get(sight, 0) == 0:
+                            continue
+
+                        avg_expt = sum_exploit[sight] / count_exploit[sight]
+
+                        if count_explore.get(sight, 0) > 0:
+                            avg_expr = sum_explore[sight] / count_explore[sight]
+                        else:
+                            avg_expr = 0.0
+
+                        total_ucb = avg_expt + avg_expr
+
+                        if not np.isinf(total_ucb) and not np.isnan(total_ucb):
+                            logger.log_stat(
+                                f"sight_exploit/{sight}",
+                                avg_expt,
+                                runner.t_env,
+                            )
+                            logger.log_stat(
+                                f"sight_explore/{sight}",
+                                avg_expr,
+                                runner.t_env,
+                            )
+                            logger.log_stat(
+                                f"sight_ucb_total/{sight}",
+                                total_ucb,
+                                runner.t_env,
+                            )
+
+                    # =========================================================
+                    # 4. Sight ratio in window
+                    # =========================================================
+                    total_history_len = sum(len(worker.history) for worker in workers_to_log)
+                    history_len_enough = total_history_len >= (
+                        ref_worker.n_arms * args.batch_size_run
+                    )
+
+                    if ref_worker.n_arms == 1 or history_len_enough:
+                        for sight, ratio in avg_sight_to_times.items():
+                            logger.log_stat(
+                                f"sight_times_in_window/{sight}",
+                                ratio,
+                                runner.t_env,
+                            )
+
+                # =========================================================
+                # 5. 額外：如果是 temporal UCB，分 time_bin 個別 log
+                # =========================================================
+                if has_temporal_workers:
+                    for bin_idx, workers_in_bin in enumerate(
+                        preprocess_manager.temporal_adaptive_workers
+                    ):
+                        valid_bin_workers = [
+                            worker for worker in workers_in_bin
+                            if len(worker.history) > 0
+                        ]
+
+                        if len(valid_bin_workers) == 0:
+                            continue
+
+                        num_bin_workers = len(valid_bin_workers)
+                        bin_avg_sight_to_times = {}
+
+                        for worker in valid_bin_workers:
+                            sight_to_times = worker.get_each_sight_ratio_in_window()
+
+                            for sight, times in sight_to_times.items():
+                                bin_avg_sight_to_times[sight] = (
+                                    bin_avg_sight_to_times.get(sight, 0.0)
+                                    + times / num_bin_workers
+                                )
+
+                        for sight, ratio in bin_avg_sight_to_times.items():
+                            logger.log_stat(
+                                f"temporal_adaptive_worker/bin_{bin_idx}/{sight}_times",
+                                ratio,
+                                runner.t_env,
+                            )
 
         # Assume no randomness in obs_key
         # If obs_key is switched, reset the buffer
@@ -477,8 +615,8 @@ def run_sequential(args, logger):
             last_time = time.time()
 
             last_test_T = runner.t_env
-            # for _ in range(n_test_runs):
-            runner.run(test_mode=True)
+            for _ in range(n_test_runs):
+                runner.run(test_mode=True)
 
             if need_record_sight_history:
                 # Reset sight_history after test
