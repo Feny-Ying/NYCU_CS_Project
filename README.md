@@ -20,11 +20,11 @@
 ### 整體架構
 
 ```
-            Selected sight range d*
-  ┌──────────────────┐ ───────────────▶ ┌──────────────────┐
-  │  Meta-Controller │                  │   MARL (MAPPO)   │ ──▶ CityFlow Env
-  │   (SW-UCB)       │ ◀─────────────── │  Q1 ... Qi ... QN │
-  └──────────────────┘  episode return  └──────────────────┘
+                    Selected sight range d*
+  ┌──────────────────┐ ───────────────▶  ┌──────────────────┐
+  │  Meta-Controller │                   │   MARL (MAPPO)    │ ──▶ CityFlow Env
+  │   (SW-UCB)       │ ◀───────────────  │  Q1 ... Qi ... QN │
+  └──────────────────┘  episode return    └──────────────────┘
 ```
 
 1. **Meta-Controller** 將可選的 sight range 視為 multi-armed bandit 的 arms，依 UCB 分數選出本 episode 使用的 `d*`。
